@@ -122,79 +122,76 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         title: const Text('Login Page'),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 300),
-          child: Column(
-            children: <Widget>[
-              const Placeholder(
-                fallbackHeight: 200,
-              ),
-              const SizedBox(height: 20),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: <Widget>[
+            const Placeholder(
+              fallbackHeight: 200,
+            ),
+            const SizedBox(height: 20),
 
-              _LoginSectionSwitcher(
-                  onSelectButtonClicked: _handleLoginTypeChange),
+            _LoginSectionSwitcher(
+                onSelectButtonClicked: _handleLoginTypeChange),
 
-              // scrollable line
-              _AnimateScrollableLineIndicator(isAdmin: isAdmin),
+            // scrollable line
+            _AnimateScrollableLineIndicator(isAdmin: isAdmin),
 
-              //  forms
-              const SizedBox(height: 20),
+            //  forms
+            const SizedBox(height: 20),
 
-              isAdmin
-                  ? _AdminLoginForm(
-                      emailController: emailController,
-                      passwordController: passwordController,
-                      onSubmit: _onAdminSubmit,
-                    )
-                  : _UserLoginForm(
-                      userNameController: userNameController,
-                      userPasswordController: userPasswordController,
-                      onSubmit: _onUserSubmit,
-                      isStudent: isStudent,
-                      onSelectButtonClicked: (bool isStudent) {
-                        setState(() {
-                          this.isStudent = isStudent;
-                        });
-                      }),
+            isAdmin
+                ? _AdminLoginForm(
+                    emailController: emailController,
+                    passwordController: passwordController,
+                    onSubmit: _onAdminSubmit,
+                  )
+                : _UserLoginForm(
+                    userNameController: userNameController,
+                    userPasswordController: userPasswordController,
+                    onSubmit: _onUserSubmit,
+                    isStudent: isStudent,
+                    onSelectButtonClicked: (bool isStudent) {
+                      setState(() {
+                        this.isStudent = isStudent;
+                      });
+                    }),
 
-              // QR CODE BUTTON
-              const SizedBox(height: 20),
-              TextButton(
-                  onPressed: () {}, child: const Text('Login By QR Code')),
+            // QR CODE BUTTON
+            const SizedBox(height: 20),
+            TextButton(onPressed: () {}, child: const Text('Login By QR Code')),
 
-              // AnimatedSwitcher(
-              //   duration: const Duration(milliseconds: 500), // 动画持续时间
-              //   child: isAdmin
-              //       ? _UserLoginForm(
-              //           key: ValueKey('UserForm'), // Key 是重要的部分，区分组件。
-              //           userNameController: userNameController,
-              //           userPasswordController: userPasswordController,
-              //           onSubmit: _onUserSubmit,
-              //           isStudent: isStudent,
-              //           onSelectButtonClicked: (bool isStudent) {
-              //             setState(() {
-              //               this.isStudent = isStudent;
-              //               print('isStudent = $isStudent');
-              //             });
-              //           },
-              //         )
-              //       : _AdminLoginForm(
-              //           key: ValueKey('AdminForm'), // 使用不同的 Key
-              //           emailController: emailController,
-              //           passwordController: passwordController,
-              //           onSubmit: _onAdminSubmit,
-              //         ),
-              //   transitionBuilder: (Widget child, Animation<double> animation) {
-              //     return FadeTransition(
-              //       // 渐变动画
-              //       opacity: animation,
-              //       child: child,
-              //     );
-              //   },
-              // ),
-            ],
-          ),
+            // AnimatedSwitcher(
+            //   duration: const Duration(milliseconds: 500), // 动画持续时间
+            //   child: isAdmin
+            //       ? _UserLoginForm(
+            //           key: ValueKey('UserForm'), // Key 是重要的部分，区分组件。
+            //           userNameController: userNameController,
+            //           userPasswordController: userPasswordController,
+            //           onSubmit: _onUserSubmit,
+            //           isStudent: isStudent,
+            //           onSelectButtonClicked: (bool isStudent) {
+            //             setState(() {
+            //               this.isStudent = isStudent;
+            //               print('isStudent = $isStudent');
+            //             });
+            //           },
+            //         )
+            //       : _AdminLoginForm(
+            //           key: ValueKey('AdminForm'), // 使用不同的 Key
+            //           emailController: emailController,
+            //           passwordController: passwordController,
+            //           onSubmit: _onAdminSubmit,
+            //         ),
+            //   transitionBuilder: (Widget child, Animation<double> animation) {
+            //     return FadeTransition(
+            //       // 渐变动画
+            //       opacity: animation,
+            //       child: child,
+            //     );
+            //   },
+            // ),
+          ],
         ),
       ),
     );
@@ -249,30 +246,32 @@ class _AnimateScrollableLineIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(99),
-        color: Theme.of(context).hintColor.withOpacity(0.2),
-      ),
-      width: 300,
-      height: 4,
-      child: Stack(
-        children: [
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            width: 150,
-            height: 4,
-            left: isAdmin ? 150 : 0,
-            curve: Curves.easeInOut,
-            child: Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(99),
-                  color: Colors.yellow[400]),
+    return LayoutBuilder(builder: (context, constraints) {
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(99),
+          color: Theme.of(context).hintColor.withOpacity(0.2),
+        ),
+        width: constraints.maxWidth,
+        height: 4,
+        child: Stack(
+          children: [
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              width: 0.5 * constraints.maxWidth,
+              height: 4,
+              left: isAdmin ? 0.5 * constraints.maxWidth : 0,
+              curve: Curves.easeInOut,
+              child: Container(
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(99),
+                    color: Colors.yellow[400]),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 }
 
