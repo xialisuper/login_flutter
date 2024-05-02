@@ -2,7 +2,6 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:login_flutter/Admin/admin_page.dart';
 import 'package:login_flutter/User/user_page.dart';
