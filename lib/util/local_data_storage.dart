@@ -82,6 +82,16 @@ class LocalDataBase {
     );
   }
 
+  static Future<void> setUserAvatarPath(String path) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(USER_AVATAR_PATH, path);
+  }
+
+  static Future<String?> getUserAvatarPath() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString(USER_AVATAR_PATH);
+  }
+
   //
   // static Future<User?> _queryUserWithName(String name) async {
   //   var db = await _getDatabase();
