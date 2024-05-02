@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:login_flutter/User/user_page.dart';
 import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 
@@ -10,14 +11,21 @@ Future<void> main() async {
   // Initialize the database.
   await LocalDataBase.initialDataBase();
 
-  runApp(const MainApp());
+  final user = await LocalDataBase.getUserInfo();
+  final isLogin = user != null;
+
+  runApp(MainApp(isLogin: isLogin));
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+  final bool isLogin;
+
+  const MainApp({super.key, required this.isLogin});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(home: LoginPage());
+    return MaterialApp(
+      home: isLogin ? const UserPage() : const LoginPage(),
+    );
   }
 }

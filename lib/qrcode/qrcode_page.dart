@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+
 import 'package:login_flutter/qrcode/scan_widget.dart';
 import 'package:login_flutter/util/toast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';

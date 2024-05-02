@@ -40,6 +40,16 @@ class LocalDataBase {
     prefs.setInt(USER_TYPE, type.index);
   }
 
+  static Future<void> onUserLogOut() async {
+    // use shared preferences to save user info
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove(USER_TOKEN);
+    prefs.remove(USER_NAME);
+    prefs.remove(USER_TYPE);
+    prefs.remove(USER_AVATAR_PATH);
+  }
+
+
   static Future<void> _saveUserNameAndToken(String name, String token) async {
     // use shared preferences to save user info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -70,6 +80,7 @@ class LocalDataBase {
     final String name = prefs.getString(USER_NAME) ?? '';
     final String token = prefs.getString(USER_TOKEN) ?? '';
     final int type = prefs.getInt(USER_TYPE) ?? 0;
+    final String avatarPath = prefs.getString(USER_AVATAR_PATH) ?? '';
 
     if (name.isEmpty || token.isEmpty) {
       return null;
@@ -79,6 +90,7 @@ class LocalDataBase {
       name: name,
       token: token,
       type: UserType.values[type],
+      avatarPath: avatarPath,
     );
   }
 
@@ -91,6 +103,7 @@ class LocalDataBase {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(USER_AVATAR_PATH);
   }
+
 
   //
   // static Future<User?> _queryUserWithName(String name) async {

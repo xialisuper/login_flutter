@@ -1,6 +1,5 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+
 import 'package:login_flutter/qrcode/scan_widget.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 

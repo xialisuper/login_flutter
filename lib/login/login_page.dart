@@ -83,11 +83,11 @@ class _LoginPageState extends State<LoginPage> {
 
     // Navigate to the user page on successful login.
     if (!mounted) return;
-    Navigator.push(
+    Navigator.pushAndRemoveUntil<void>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const UserPage(),
-      ),
+      MaterialPageRoute<void>(
+          builder: (BuildContext context) => const UserPage()),
+      ModalRoute.withName('/'),
     );
   }
 

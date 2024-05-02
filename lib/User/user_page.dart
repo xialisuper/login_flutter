@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:login_flutter/login/login_page.dart';
+import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/permission_helper.dart';
 import 'package:login_flutter/util/toast.dart';
@@ -14,14 +16,14 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  String _imageFilePath = '';
+  String _userName = '';
+  String _userAvatarPath = '';
 
   Future<void> _handleUserIconButtonTapped() async {
     final isGranted = await PermissionHelper.requestCameraPermission();
     if (isGranted) {
       _openImagePicker();
     } else {
-      debugPrint('相册权限未授权');
       MyToast.showToast(msg: '相册权限未授权', type: ToastType.error);
     }
   }
@@ -32,7 +34,7 @@ class _UserPageState extends State<UserPage> {
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null && image.path.isNotEmpty) {
       setState(() {
-        _imageFilePath = image.path;
+        _userAvatarPath = image.path;
       });
       // 保存用户头像到shared preferences. no need to await
       // may not work in web .
@@ -40,11 +42,15 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
-  Future<void> loadImagePath() async {
-    final String? imagePath = await LocalDataBase.getUserAvatarPath();
-    if (imagePath != null) {
+  Future<void> _loadUserInfo() async {
+    final User? user = await LocalDataBase.getUserInfo();
+
+    if (user != null) {
       setState(() {
-        _imageFilePath = imagePath;
+        debugPrint('user: ${user.toString()}');
+
+        _userName = user.name;
+        _userAvatarPath = user.avatarPath;
       });
     }
   }
@@ -52,7 +58,7 @@ class _UserPageState extends State<UserPage> {
   @override
   void initState() {
     super.initState();
-    loadImagePath();
+    _loadUserInfo();
   }
 
   @override
@@ -64,13 +70,13 @@ class _UserPageState extends State<UserPage> {
       body: Center(
         child: Column(
           children: <Widget>[
-            if (_imageFilePath.isNotEmpty)
+            if (_userAvatarPath.isNotEmpty)
               GestureDetector(
                 onTap: _handleUserIconButtonTapped,
                 child: CircleAvatar(
                   radius: 100, // 设置头像半径
                   backgroundImage:
-                      FileImage(File(_imageFilePath)), // 使用FileImage加载图片
+                      FileImage(File(_userAvatarPath)), // 使用FileImage加载图片
                 ),
               )
             else
@@ -82,6 +88,30 @@ class _UserPageState extends State<UserPage> {
                 ),
               ),
             const SizedBox(height: 50),
+            // user name
+            Text(
+              _userName.isNotEmpty ? _userName : 'hello world',
+              style: const TextStyle(fontSize: 20),
+            ),
+            const Spacer(),
+            // log out button
+            Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: ElevatedButton(
+                onPressed: () async {
+                  await LocalDataBase.onUserLogOut();
+
+                  if (!context.mounted) return;
+                  Navigator.pushAndRemoveUntil<void>(
+                    context,
+                    MaterialPageRoute<void>(
+                        builder: (BuildContext context) => const LoginPage()),
+                    ModalRoute.withName('/login'),
+                  );
+                },
+                child: const Text('Log Out'),
+              ),
+            ),
           ],
         ),
       ),

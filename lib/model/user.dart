@@ -8,12 +8,13 @@ class User {
 
   UserType type;
 
-  //TODO: user avatar
+  String avatarPath;
 
   User({
     required this.name,
     required this.token,
     required this.type,
+    required this.avatarPath,
   });
 
   // to map
@@ -22,13 +23,14 @@ class User {
       'name': name,
       'token': token,
       'type': type.index,
+      'avatarPath': avatarPath,
     };
   }
 
   // to string
   @override
   String toString() {
-    return 'User(name: $name, token: $token, type: $type)';
+    return 'User(name: $name, token: $token, type: $type, avatarPath: $avatarPath)';
   }
 }
 
