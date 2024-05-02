@@ -1,6 +1,8 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:login_flutter/const.dart';
+import 'package:login_flutter/model/chat_message.dart';
 import 'package:login_flutter/model/user.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,20 +17,43 @@ class LocalDataBase {
       // `path` package is best practice to ensure the path is correctly
       // constructed for each platform.
       join(await getDatabasesPath(), DB_NAME),
-      onCreate: (db, version) {
-        // Run the CREATE TABLE statement on the database.
-        return db.execute(
-          'CREATE TABLE users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, token TEXT)',
-        );
-      },
-
-      version: 1,
+      onCreate: _onCreateChatsTable,
+      version: 2,
     );
+
+    debugPrint("${await getDatabasesPath()}/$DB_NAME");
   }
 
-  static Future<Database> _getDatabase() async {
+  static Future<void> _onCreateChatsTable(Database db, int version) async {
+    await db.execute(
+        'CREATE TABLE chats (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, isSentByUser INTEGER)');
+    await db.rawInsert(
+        'INSERT INTO chats (content, isSentByUser) VALUES (?, ?)',
+        ['hello world', 0]);
+  }
+
+  static Future<List<ChatMessage>> getAllChatMessages() async {
     var db = await openDatabase(DB_NAME);
-    return db;
+    final List<Map> result = await db.rawQuery(
+      'SELECT * FROM chats',
+    );
+
+    if (result.isEmpty) {
+      return [];
+    }
+
+    return result.map((e) {
+      return ChatMessage(
+        content: e['content'],
+        isSentByUser: e['isSentByUser'] == 1 ? true : false,
+      );
+    }).toList();
+  }
+
+  static Future<void> saveChatMessage(ChatMessage message) async {
+    var db = await openDatabase(DB_NAME);
+    final int id = await db.insert('chats', message.toMap());
+    debugPrint('saveChatMessage id: $id');
   }
 
   static Future<void> onUserLoginWithName(
@@ -49,29 +74,11 @@ class LocalDataBase {
     prefs.remove(USER_AVATAR_PATH);
   }
 
-
-  static Future<void> _saveUserNameAndToken(String name, String token) async {
-    // use shared preferences to save user info
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setString(USER_TOKEN, token);
-    prefs.setString(USER_NAME, name);
-  }
-
   Future<String> saveImageToFileSystem(File imageFile, String filename) async {
     Directory directory = await getApplicationDocumentsDirectory();
     String path = directory.path;
     File newImage = await imageFile.copy('$path/$filename');
     return newImage.path;
-  }
-
-  Future<void> _saveImagePath(String imagePath) async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(USER_AVATAR_PATH, imagePath);
-  }
-
-  Future<String?> _getImagePath() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(USER_AVATAR_PATH);
   }
 
   static Future<User?> getUserInfo() async {
@@ -103,26 +110,6 @@ class LocalDataBase {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(USER_AVATAR_PATH);
   }
-
-
-  //
-  // static Future<User?> _queryUserWithName(String name) async {
-  //   var db = await _getDatabase();
-  //   final List<Map> result = await db.rawQuery(
-  //     'SELECT * FROM users WHERE name = ?',
-  //     [name],
-  //   );
-
-  //   if (result.isEmpty) {
-  //     return null;
-  //   }
-
-  //   return User(
-  //     name: result[0]['name'],
-  //     token: result[0]['token'],
-  //     type: UserType.values[result[0]['type']],
-  //   );
-  // }
 }
 
 const String _mockUserToken = '1234567890';

@@ -1,38 +1,52 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:login_flutter/model/chat_message.dart';
+import 'package:login_flutter/util/local_data_storage.dart';
+import 'package:login_flutter/util/toast.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
 
   @override
-  _AdminPageState createState() => _AdminPageState();
+  State<AdminPage> createState() => _AdminPageState();
 }
 
 class _AdminPageState extends State<AdminPage> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  List<ChatMessage> messages = [
-    ChatMessage(text: "Hello World!!!", isSentByUser: false),
-  ];
+  List<ChatMessage> messages = [];
 
   @override
   void initState() {
-    _scrollController.addListener(() {
-      debugPrint(
-          'scrollController: ${_scrollController.position.pixels}, maxScrollExtent: ${_scrollController.position.maxScrollExtent}');
-    });
     super.initState();
+    _loadChatMessages();
+  }
+
+  void _loadChatMessages() async {
+    final List<ChatMessage> chatMessages =
+        await LocalDataBase.getAllChatMessages();
+    setState(() {
+      messages.addAll(chatMessages);
+    });
   }
 
   void _sendMessage() {
-    if (_textController.text.isNotEmpty) {
-      setState(() {
-        messages.insert(
-            0, ChatMessage(text: _textController.text, isSentByUser: true));
-        _textController.clear();
-      });
+    if (_textController.text.isEmpty) {
+      MyToast.showToast(msg: '请输入内容', type: ToastType.error);
+      return;
     }
+
+    setState(() {
+      messages.insert(
+          0, ChatMessage(content: _textController.text, isSentByUser: true));
+      _textController.clear();
+    });
+
+    LocalDataBase.saveChatMessage(ChatMessage(
+      content: _textController.text,
+      isSentByUser: true,
+    ));
 
     _scrollController.animateTo(
       0.1,
@@ -119,13 +133,6 @@ class _ChatEnterBar extends StatelessWidget {
   }
 }
 
-class ChatMessage {
-  final String text;
-  final bool isSentByUser;
-
-  ChatMessage({required this.text, required this.isSentByUser});
-}
-
 class ChatMessageBubble extends StatelessWidget {
   final ChatMessage message;
 
@@ -157,7 +164,7 @@ class ChatMessageBubble extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                message.text,
+                message.content,
                 softWrap: true, // let the text wrap onto the next line
               ),
             ),
