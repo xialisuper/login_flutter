@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:login_flutter/qrcode/scan_widget.dart';
+import 'package:login_flutter/util/toast.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QRCodePage extends StatefulWidget {
@@ -59,33 +60,8 @@ class _QRCodePageState extends State<QRCodePage> with WidgetsBindingObserver {
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.blue[300],
-            content: Text(message),
-          ),
-        )
-        .closed
-        .then((value) {
-      debugPrint('snackbar closed $value');
-      // controller.start();
-      // 使用 stop 方法会导致 QR 码无法扫描 效果很差 .  使用过滤重复qr 码的方法. 当snack bar结束的时候,重置 QR 码.依旧可以扫描同一个QR码.
-      _barcode = null;
-    });
-  }
-
   Future<void> _showToast(String message) async {
-    await Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.CENTER,
-      timeInSecForIosWeb: 1,
-      backgroundColor: Colors.blue[300],
-      textColor: Colors.white,
-      fontSize: 16.0,
-    );
+    await MyToast.showToast(msg: message, type: ToastType.success);
 
     _barcode = null;
   }

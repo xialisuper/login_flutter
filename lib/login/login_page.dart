@@ -2,13 +2,12 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:login_flutter/Admin/admin_page.dart';
 import 'package:login_flutter/User/user_page.dart';
-import 'package:login_flutter/qrcode/qr_overlay.dart';
-import 'package:login_flutter/qrcode/qr_scanner.dart';
-import 'package:login_flutter/qrcode/qr_window.dart';
 import 'package:login_flutter/qrcode/qrcode_page.dart';
+import 'package:login_flutter/util/toast.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -125,18 +124,15 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _handleQrCodeButtonClicked() async {
     final defaultStatus = await Permission.camera.status;
     if (defaultStatus.isGranted) {
-      // TODO: 处理 QR 码扫描
-      debugPrint('已经获取到权限 直接处理扫码');
       _goToQrCodeScanPage();
     } else {
       final status = await Permission.camera.request();
       if (status == PermissionStatus.granted) {
-        // TODO: 处理 QR 码扫描
         debugPrint('获取到权限 准备处理扫码');
         _goToQrCodeScanPage();
       } else {
-        // TODO: 提示用户拒绝权限
         debugPrint('拒绝权限 提示用户拒绝权限');
+        MyToast.showToast(msg: '相册权限未开启，请开启权限后再扫码', type: ToastType.error);
       }
     }
   }
@@ -147,9 +143,6 @@ class _LoginPageState extends State<LoginPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => const QRCodePage(),
-        // builder: (context) => BarcodeScannerWithOverlay(),
-        // builder: (context) => BarcodeScannerWithScanWindow(),
-        // builder: (context) => QRScannerPage(),
       ),
     );
   }
