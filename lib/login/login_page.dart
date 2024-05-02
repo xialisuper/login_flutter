@@ -6,7 +6,9 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:login_flutter/Admin/admin_page.dart';
 import 'package:login_flutter/User/user_page.dart';
+import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/qrcode/qrcode_page.dart';
+import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/toast.dart';
 
 import 'package:permission_handler/permission_handler.dart';
@@ -61,7 +63,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // This method handles the form submission for user login.
-  void _onUserSubmit() {
+  Future<void> _onUserSubmit() async {
     if (!_isValidatedUserName(userNameController.text)) {
       _showError("Please enter a valid user name, length is at least 6");
       return;
@@ -72,7 +74,15 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
+    // save user info to local database
+    await LocalDataBase.onUserLoginWithName(
+      userNameController.text,
+      userPasswordController.text,
+      isStudent ? UserType.student : UserType.parent,
+    );
+
     // Navigate to the user page on successful login.
+    if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -191,40 +201,12 @@ class _LoginPageState extends State<LoginPage> {
             // QR CODE BUTTON
             const SizedBox(height: 20),
             TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.green[400],
+              ),
               onPressed: _handleQrCodeButtonClicked,
               child: const Text('Login By QR Code'),
             ),
-
-            // AnimatedSwitcher(
-            //   duration: const Duration(milliseconds: 500), // 动画持续时间
-            //   child: isAdmin
-            //       ? _UserLoginForm(
-            //           key: ValueKey('UserForm'), // Key 是重要的部分，区分组件。
-            //           userNameController: userNameController,
-            //           userPasswordController: userPasswordController,
-            //           onSubmit: _onUserSubmit,
-            //           isStudent: isStudent,
-            //           onSelectButtonClicked: (bool isStudent) {
-            //             setState(() {
-            //               this.isStudent = isStudent;
-            //               print('isStudent = $isStudent');
-            //             });
-            //           },
-            //         )
-            //       : _AdminLoginForm(
-            //           key: ValueKey('AdminForm'), // 使用不同的 Key
-            //           emailController: emailController,
-            //           passwordController: passwordController,
-            //           onSubmit: _onAdminSubmit,
-            //         ),
-            //   transitionBuilder: (Widget child, Animation<double> animation) {
-            //     return FadeTransition(
-            //       // 渐变动画
-            //       opacity: animation,
-            //       child: child,
-            //     );
-            //   },
-            // ),
           ],
         ),
       ),
