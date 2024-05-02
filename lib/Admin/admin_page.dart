@@ -37,16 +37,18 @@ class _AdminPageState extends State<AdminPage> {
       return;
     }
 
-    setState(() {
-      messages.insert(
-          0, ChatMessage(content: _textController.text, isSentByUser: true));
-      _textController.clear();
-    });
-
+    // save message to local database before ui, or _textController.clear() will clear the message
     LocalDataBase.saveChatMessage(ChatMessage(
       content: _textController.text,
       isSentByUser: true,
     ));
+
+    setState(() {
+      messages.insert(
+          0, ChatMessage(content: _textController.text, isSentByUser: true));
+          
+      _textController.clear();
+    });
 
     _scrollController.animateTo(
       0.1,

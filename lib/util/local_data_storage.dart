@@ -35,7 +35,7 @@ class LocalDataBase {
   static Future<List<ChatMessage>> getAllChatMessages() async {
     var db = await openDatabase(DB_NAME);
     final List<Map> result = await db.rawQuery(
-      'SELECT * FROM chats',
+      'SELECT * FROM chats ORDER BY id DESC',
     );
 
     if (result.isEmpty) {
@@ -52,7 +52,9 @@ class LocalDataBase {
 
   static Future<void> saveChatMessage(ChatMessage message) async {
     var db = await openDatabase(DB_NAME);
-    final int id = await db.insert('chats', message.toMap());
+    final int id = await db.rawInsert(
+        'INSERT INTO chats (content, isSentByUser) VALUES (?, ?)',
+        [message.content, message.isSentByUser ? 1 : 0]);
     debugPrint('saveChatMessage id: $id');
   }
 
@@ -65,11 +67,29 @@ class LocalDataBase {
     prefs.setInt(USER_TYPE, type.index);
   }
 
+  static Future<void> onAdminLogin(
+      {required String email, required String password}) async {
+    // use shared preferences to save admin info
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString(USER_TOKEN, _mockUserToken);
+    prefs.setString(ADMIN_EMAIL, email);
+    prefs.setInt(USER_TYPE, UserType.admin.index);
+  }
+
   static Future<void> onUserLogOut() async {
     // use shared preferences to save user info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove(USER_TOKEN);
     prefs.remove(USER_NAME);
+    prefs.remove(USER_TYPE);
+    prefs.remove(USER_AVATAR_PATH);
+  }
+
+  static Future<void> onAdminLogOut() async {
+    // use shared preferences to save user info
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove(USER_TOKEN);
+    prefs.remove(ADMIN_EMAIL);
     prefs.remove(USER_TYPE);
     prefs.remove(USER_AVATAR_PATH);
   }
@@ -84,12 +104,13 @@ class LocalDataBase {
   static Future<User?> getUserInfo() async {
     // use shared preferences to get user info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String email = prefs.getString(ADMIN_EMAIL) ?? '';
     final String name = prefs.getString(USER_NAME) ?? '';
     final String token = prefs.getString(USER_TOKEN) ?? '';
     final int type = prefs.getInt(USER_TYPE) ?? 0;
     final String avatarPath = prefs.getString(USER_AVATAR_PATH) ?? '';
 
-    if (name.isEmpty || token.isEmpty) {
+    if (name.isEmpty && email.isEmpty) {
       return null;
     }
 
@@ -98,6 +119,7 @@ class LocalDataBase {
       token: token,
       type: UserType.values[type],
       avatarPath: avatarPath,
+      email: email,
     );
   }
 

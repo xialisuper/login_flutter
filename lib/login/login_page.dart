@@ -41,7 +41,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // This method handles the form submission for admin login.
-  void _onAdminSubmit() {
+  Future<void> _onAdminSubmit() async {
     if (!_isValidatedEmail(emailController.text)) {
       _showError("Please enter a valid email address");
       return;
@@ -52,12 +52,17 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    // Navigate to the admin page on successful login.
-    Navigator.push(
+    await LocalDataBase.onAdminLogin(
+        email: emailController.text, password: passwordController.text);
+
+    // Navigate to the user page on successful login.
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil<void>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const AdminPage(),
+      MaterialPageRoute<void>(
+        builder: (BuildContext context) => const AdminPage(),
       ),
+      ModalRoute.withName('/admin'),
     );
   }
 
