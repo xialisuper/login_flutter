@@ -16,16 +16,15 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  Future<void> _handleUserIconButtonTapped() async {
+  Future<void> _handleUserIconButtonTapped(BuildContext context) async {
     // picker will check permission or request permission and then open image picker , return selected image path or empty string(canceled)
     final path = await Provider.of<AvatarPicker>(context, listen: false)
         .openImagePicker();
 
-
     // if user canceled the picker, return
     if (path.isEmpty) return;
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     // update user avatar path
     // should use listen: false to use context outside widget tree
     await Provider.of<UserModel>(context, listen: false)
@@ -49,53 +48,55 @@ class _UserPageState extends State<UserPage> {
   Widget build(BuildContext context) {
     return Provider(
       create: (BuildContext context) => AvatarPicker(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('User Page'),
-        ),
-        body: Center(
-          child: Consumer<UserModel>(builder: (_, userModel, __) {
-            return Column(
-              children: <Widget>[
-                // if (_userAvatarPath.isNotEmpty)
-                if (userModel.userInfo != null &&
-                    userModel.userInfo!.avatarPath.isNotEmpty)
-                  GestureDetector(
-                    onTap: _handleUserIconButtonTapped,
-                    child: CircleAvatar(
-                      radius: 100, // 设置头像半径
-                      backgroundImage: FileImage(File(
-                          userModel.userInfo!.avatarPath)), // 使用FileImage加载图片
+      builder: (context, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('User Page'),
+          ),
+          body: Center(
+            child: Consumer<UserModel>(builder: (_, userModel, __) {
+              return Column(
+                children: <Widget>[
+                  // if (_userAvatarPath.isNotEmpty)
+                  if (userModel.userInfo != null &&
+                      userModel.userInfo!.avatarPath.isNotEmpty)
+                    GestureDetector(
+                      onTap: () => _handleUserIconButtonTapped(context),
+                      child: CircleAvatar(
+                        radius: 100, // 设置头像半径
+                        backgroundImage: FileImage(File(
+                            userModel.userInfo!.avatarPath)), // 使用FileImage加载图片
+                      ),
+                    )
+                  else
+                    IconButton(
+                      onPressed: () => _handleUserIconButtonTapped(context),
+                      icon: const Icon(
+                        size: 200,
+                        Icons.enhance_photo_translate_rounded,
+                      ),
                     ),
-                  )
-                else
-                  IconButton(
-                    onPressed: _handleUserIconButtonTapped,
-                    icon: const Icon(
-                      size: 200,
-                      Icons.enhance_photo_translate_rounded,
+                  const SizedBox(height: 50),
+
+                  Text(
+                    _userName(userModel),
+                    style: const TextStyle(fontSize: 20),
+                  ),
+                  const Spacer(),
+
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: ElevatedButton(
+                      onPressed: () => _handleLogOutButtonTapped(context),
+                      child: const Text('Log Out'),
                     ),
                   ),
-                const SizedBox(height: 50),
-      
-                Text(
-                  _userName(userModel),
-                  style: const TextStyle(fontSize: 20),
-                ),
-                const Spacer(),
-      
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: ElevatedButton(
-                    onPressed: () => _handleLogOutButtonTapped(context),
-                    child: const Text('Log Out'),
-                  ),
-                ),
-              ],
-            );
-          }),
-        ),
-      ),
+                ],
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 

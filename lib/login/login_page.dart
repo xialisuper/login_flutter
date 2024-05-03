@@ -47,7 +47,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // This method handles the form submission for admin login.
-  Future<void> _onAdminSubmit() async {
+  Future<void> _onAdminSubmit(BuildContext context) async {
     if (!Validations.isValidatedEmail(emailController.text)) {
       _showError(TOAST_INVALID_EMAIL);
       return;
@@ -66,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
       password: passwordController.text,
     );
 
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     // Navigate to the user page on successful login.
     Navigator.pushAndRemoveUntil<void>(
@@ -79,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // This method handles the form submission for user login.
-  Future<void> _onUserSubmit() async {
+  Future<void> _onUserSubmit(BuildContext context) async {
     if (!Validations.isValidatedUserName(userNameController.text)) {
       _showError(TOAST_INVALID_USERNAME);
       return;
@@ -98,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
       userPasswordController.text,
       isStudent ? UserType.student : UserType.parent,
     );
-    if (!mounted) return;
+    if (!context.mounted) return;
 
     // Navigate to the user page on successful login.
     Navigator.pushAndRemoveUntil<void>(
@@ -208,12 +208,12 @@ class _LoginPageState extends State<LoginPage> {
                 ? _AdminLoginForm(
                     emailController: emailController,
                     passwordController: passwordController,
-                    onSubmit: _onAdminSubmit,
+                    onSubmit: () => _onAdminSubmit(context),
                   )
                 : _UserLoginForm(
                     userNameController: userNameController,
                     userPasswordController: userPasswordController,
-                    onSubmit: _onUserSubmit,
+                    onSubmit: () => _onUserSubmit(context),
                     isStudent: isStudent,
                     onSelectButtonClicked: (bool isStudent) {
                       setState(() {
