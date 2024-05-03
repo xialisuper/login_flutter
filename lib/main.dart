@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:login_flutter/Admin/admin_page.dart';
 import 'package:login_flutter/User/user_page.dart';
 import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
+import 'package:login_flutter/util/user_info.dart';
+import 'package:provider/provider.dart';
 
 Future<void> main() async {
   // Avoid errors caused by flutter upgrade.
@@ -15,7 +18,13 @@ Future<void> main() async {
 
   final user = await LocalDataBase.getUserInfo();
 
-  runApp(MainApp(user));
+  runApp(
+    ChangeNotifierProvider(
+        create: (BuildContext context) {
+          return UserModel();
+        },
+        child: MainApp(user)),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -25,6 +34,19 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (user != null) {
+        // Set the user information to the provider.
+        Provider.of<UserModel>(context, listen: false).setUserInfo(
+          UserInfo(
+            name: user!.name,
+            email: user!.email,
+            userId: user!.userID,
+          ),
+        );
+      }
+    });
+
     Widget home;
     if (user == null) {
       home = const LoginPage();
@@ -34,6 +56,19 @@ class MainApp extends StatelessWidget {
       home = const UserPage();
     }
 
-    return MaterialApp(home: home);
+    // if (user != null) {
+    //   // Set the user information to the provider.
+    //   Provider.of<UserModel>(context, listen: false).setUserInfo(
+    //     UserInfo(
+    //       name: user!.name,
+    //       email: user!.email,
+    //       userId: user!.userID,
+    //     ),
+    //   );
+    // }
+
+    return MaterialApp(
+      home: home,
+    );
   }
 }

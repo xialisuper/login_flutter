@@ -11,9 +11,11 @@ import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/qrcode/qrcode_page.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/toast.dart';
+import 'package:login_flutter/util/user_info.dart';
 import 'package:login_flutter/util/validations.dart';
 
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -57,11 +59,14 @@ class _LoginPageState extends State<LoginPage> {
 
     _showSuccess(TOAST_SUCCESS_MESSAGE);
 
-    await LocalDataBase.onAdminLogin(
+    final user = await LocalDataBase.onAdminLogin(
         email: emailController.text, password: passwordController.text);
 
     // Navigate to the user page on successful login.
     if (!mounted) return;
+    Provider.of<UserModel>(context, listen: false).setUserInfo(
+      UserInfo(name: user.name, email: user.email, userId: user.userID),
+    );
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
@@ -86,14 +91,18 @@ class _LoginPageState extends State<LoginPage> {
     _showSuccess(TOAST_SUCCESS_MESSAGE);
 
     // save user info to local database
-    await LocalDataBase.onUserLoginWithName(
+    final user = await LocalDataBase.onUserLogin(
       userNameController.text,
       userPasswordController.text,
       isStudent ? UserType.student : UserType.parent,
     );
 
-    // Navigate to the user page on successful login.
     if (!mounted) return;
+    // set user info to provider
+    Provider.of<UserModel>(context, listen: false).setUserInfo(
+      UserInfo(name: user.name, email: user.email, userId: user.userID),
+    );
+    // Navigate to the user page on successful login.
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(

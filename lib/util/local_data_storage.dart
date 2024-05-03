@@ -55,7 +55,7 @@ class LocalDataBase {
 
     // insert default admin user
     await db.execute("""
-    INSERT INTO Users (username, other_user_details)
+    INSERT INTO Users (email, other_user_details)
     VALUES ('admin@admin.com', 'admin');
 """);
   }
@@ -113,7 +113,8 @@ class LocalDataBase {
   }
 
   // save chat message to database, return true if success, false if failed
-  static Future<ChatMessage?> saveChatMessage(String message) async {
+  static Future<ChatMessage?> saveChatMessage(
+      String message, int userId) async {
     if (message.isEmpty) return null;
 
     var db = await openDatabase(DB_NAME);
@@ -123,13 +124,6 @@ class LocalDataBase {
 
     final String timestamp = DateTime.now().toIso8601String();
 
-    final userId = await _getUserIdFromSharedPreference();
-
-    if (userId == null) {
-      debugPrint("ERROR:user id is null!!!!!");
-      return null;
-    }
-
     try {
       // 插入一条聊天消息
       await db.rawInsert("""
@@ -137,29 +131,38 @@ class LocalDataBase {
         VALUES (?, ?, ?, ?)
         """, [userId, _defaultAdminID, message, timestamp]);
 
-      return ChatMessage.fromMap(
-        {
-          "sender_id": userId,
-          "recipient_id": _defaultAdminID,
-          "message_content": message,
-          "timestamp": timestamp,
-        },
+      return ChatMessage(
+        messageContent: message,
+        senderId: userId,
+        receiverId: _defaultAdminID,
+        timestamp: timestamp,
       );
     } catch (e) {
+      debugPrint(e.toString());
       return null;
     }
   }
 
-  static Future<void> onUserLoginWithName(
+  static Future<User> onUserLogin(
       String name, String password, UserType type) async {
     // use shared preferences to save user info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(USER_TOKEN, _mockUserToken);
     prefs.setString(USER_NAME, name);
     prefs.setInt(USER_TYPE, type.index);
+
+    return User(
+      name: name,
+      token: _mockUserToken,
+      type: type,
+      avatarPath: '',
+      email: '',
+      userID: -1,
+    );
   }
 
-  static Future<void> onAdminLogin(
+//danteng@dan.com
+  static Future<User> onAdminLogin(
       {required String email, required String password}) async {
     // use shared preferences to save admin info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -168,7 +171,39 @@ class LocalDataBase {
     prefs.setInt(USER_TYPE, UserType.admin.index);
 
     // get or create user to users table
-    await _getOrCreateUserInfoByEmail(email);
+    final int userId = await _getOrCreateUserInfoByEmail(email);
+    prefs.setInt(ADMIN_ID, userId);
+
+    await _createDefaultHelloToUser(userId);
+
+    final user = User(
+      name: '',
+      token: _mockUserToken,
+      type: UserType.admin,
+      avatarPath: '',
+      email: email,
+      userID: userId,
+    );
+    debugPrint(
+      'admin login success user info: name: ${user.name}, email: ${user.email}, token: ${user.token}, type: ${user.type}, userID: ${user.userID}',
+    );
+
+    return user;
+  }
+
+  static Future<void> _createDefaultHelloToUser(int userId) async {
+    var db = await openDatabase(DB_NAME);
+    final String timestamp = DateTime.now().toIso8601String();
+
+    try {
+      // 插入一条聊天消息
+      await db.rawInsert("""
+        INSERT INTO Messages (sender_id, recipient_id, message_content, timestamp)
+        VALUES (?, ?, ?, ?)
+        """, [_defaultAdminID, userId, 'Hello to you!', timestamp]);
+    } catch (e) {
+      debugPrint(e.toString());
+    }
   }
 
   static Future<void> onUserLogOut() async {
@@ -210,7 +245,7 @@ class LocalDataBase {
       return null;
     }
 
-    return User(
+    final user = User(
       name: name,
       token: token,
       type: UserType.values[type],
@@ -218,6 +253,10 @@ class LocalDataBase {
       email: email,
       userID: adminId,
     );
+
+    debugPrint(
+        'get user info from local: user info: name: ${user.name}, email: ${user.email}, token: ${user.token}, type: ${user.type}, userID: ${user.userID}');
+    return user;
   }
 
   static Future<void> setUserAvatarPath(String path) async {
@@ -228,11 +267,6 @@ class LocalDataBase {
   static Future<String?> getUserAvatarPath() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(USER_AVATAR_PATH);
-  }
-
-  static Future<int?> _getUserIdFromSharedPreference() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(ADMIN_ID);
   }
 }
 

@@ -22,11 +22,7 @@ class ChatMessage {
   }
 
   // from map
-  ChatMessage.fromMap(Map<String, dynamic> map)
-      : messageContent = map['message_content'],
-        senderId = map['sender_id'],
-        receiverId = map['receiver_id'],
-        timestamp = map['timestamp'];
+  
 
   // to string
   @override

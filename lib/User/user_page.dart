@@ -7,6 +7,8 @@ import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/permission_helper.dart';
 import 'package:login_flutter/util/toast.dart';
+import 'package:login_flutter/util/user_info.dart';
+import 'package:provider/provider.dart';
 
 class UserPage extends StatefulWidget {
   const UserPage({super.key});
@@ -55,11 +57,14 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
-  Future<void> _backToLoginPage() async {
+  Future<void> _backToLoginPage(BuildContext context) async {
     //clear user info and logout
     await LocalDataBase.onUserLogOut();
 
-    if (!mounted) return;
+    if (!context.mounted) return;
+
+    Provider.of<UserModel>(context, listen: false).logOut();
+
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
@@ -111,7 +116,7 @@ class _UserPageState extends State<UserPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
               child: ElevatedButton(
-                onPressed: _backToLoginPage,
+                onPressed: () => _backToLoginPage(context),
                 child: const Text('Log Out'),
               ),
             ),

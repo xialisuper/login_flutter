@@ -4,6 +4,8 @@ import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/chat_message.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/toast.dart';
+import 'package:login_flutter/util/user_info.dart';
+import 'package:provider/provider.dart';
 
 class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
@@ -32,21 +34,33 @@ class _AdminPageState extends State<AdminPage> {
     });
   }
 
-  void _sendMessage() {
+  Future<void> _sendMessage(BuildContext context) async {
     if (_textController.text.isEmpty) {
       MyToast.showToast(msg: '请输入内容', type: ToastType.error);
       return;
     }
 
     // save message to local database before update ui, otherwise _textController.clear() will clean the message inputField and insert a empty message into database
-    LocalDataBase.saveChatMessage(ChatMessage(
-      content: _textController.text,
-      isSentByUser: true,
-    ));
+
+    final useInfo = Provider.of<UserModel>(context, listen: false).userInfo;
+    
+    if (useInfo == null) {
+      MyToast.showToast(msg: '请先登录', type: ToastType.error);
+      return;
+    }
+
+    final messageCreated = await LocalDataBase.saveChatMessage(
+      _textController.text,
+      useInfo.userId,
+    );
+
+    if (messageCreated == null) {
+      MyToast.showToast(msg: '消息保存失败', type: ToastType.error);
+      return;
+    }
 
     setState(() {
-      messages.insert(
-          0, ChatMessage(content: _textController.text, isSentByUser: true));
+      messages.insert(0, messageCreated);
 
       // clear message inputField
       _textController.clear();
@@ -59,9 +73,11 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-  Future<void> _handleAdminLogOut() async {
+  Future<void> _handleAdminLogOut(BuildContext context) async {
     await LocalDataBase.onAdminLogOut();
-    if (!mounted) return;
+
+    if (!context.mounted) return;
+    Provider.of<UserModel>(context, listen: false).logOut();
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
@@ -97,7 +113,7 @@ class _AdminPageState extends State<AdminPage> {
             /// the action's text color to red.
             isDestructiveAction: true,
             onPressed: () {
-              _handleAdminLogOut();
+              _handleAdminLogOut(context);
               Navigator.pop(context);
             },
             child: const Text('Log Out'),
@@ -136,7 +152,7 @@ class _AdminPageState extends State<AdminPage> {
             ),
             _ChatEnterBar(
               textController: _textController,
-              sendMessage: _sendMessage,
+              sendMessage: () => _sendMessage(context),
             ),
             const SizedBox(height: 24),
           ],
@@ -148,7 +164,6 @@ class _AdminPageState extends State<AdminPage> {
 
 class _ChatEnterBar extends StatelessWidget {
   const _ChatEnterBar({
-    super.key,
     required this.textController,
     required this.sendMessage,
   });
@@ -197,15 +212,18 @@ class ChatMessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userInfo = Provider.of<UserModel>(context, listen: false).userInfo;
+    final isMessageSendByCurrentUser = message.senderId == userInfo?.userId;
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
-        mainAxisAlignment: message.isSentByUser
+        mainAxisAlignment: isMessageSendByCurrentUser
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!message.isSentByUser)
+          if (!isMessageSendByCurrentUser)
             CircleAvatar(
               backgroundColor: Colors.grey[300],
             ),
@@ -215,18 +233,18 @@ class ChatMessageBubble extends StatelessWidget {
               margin: const EdgeInsets.symmetric(horizontal: 10),
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: message.isSentByUser
+                color: isMessageSendByCurrentUser
                     ? Colors.yellow[700]
                     : Colors.grey[300],
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                message.content,
+                message.messageContent,
                 softWrap: true, // let the text wrap onto the next line
               ),
             ),
           ),
-          if (message.isSentByUser)
+          if (isMessageSendByCurrentUser)
             CircleAvatar(
               backgroundColor: Colors.yellow[200],
             ),
