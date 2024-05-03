@@ -22,7 +22,7 @@ class _UserPageState extends State<UserPage> {
   String _userAvatarPath = '';
 
   Future<void> _handleUserIconButtonTapped() async {
-    final isGranted = await PermissionHelper.requestCameraPermission();
+    final isGranted = await PermissionHelper.requestAlbumPermission();
     if (isGranted) {
       _openImagePicker();
     } else {

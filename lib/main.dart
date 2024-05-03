@@ -8,8 +8,6 @@ import 'package:login_flutter/util/user_info.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
-  // Avoid errors caused by flutter upgrade.
-// Importing 'package:flutter/widgets.dart' is required.
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize the database.
@@ -19,10 +17,9 @@ Future<void> main() async {
 
   runApp(
     ChangeNotifierProvider(
-        create: (BuildContext context) {
-          return UserModel();
-        },
-        child: MainApp(user)),
+      create: (BuildContext context) => UserModel(),
+      child: MainApp(user),
+    ),
   );
 }
 
