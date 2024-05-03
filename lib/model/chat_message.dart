@@ -21,9 +21,6 @@ class ChatMessage {
     };
   }
 
-  // from map
-  
-
   // to string
   @override
   String toString() {

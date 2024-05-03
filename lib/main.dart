@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:login_flutter/Admin/admin_page.dart';
 import 'package:login_flutter/User/user_page.dart';
 import 'package:login_flutter/login/login_page.dart';
@@ -55,17 +54,6 @@ class MainApp extends StatelessWidget {
     } else {
       home = const UserPage();
     }
-
-    // if (user != null) {
-    //   // Set the user information to the provider.
-    //   Provider.of<UserModel>(context, listen: false).setUserInfo(
-    //     UserInfo(
-    //       name: user!.name,
-    //       email: user!.email,
-    //       userId: user!.userID,
-    //     ),
-    //   );
-    // }
 
     return MaterialApp(
       home: home,
