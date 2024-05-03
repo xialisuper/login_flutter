@@ -4,7 +4,7 @@ import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/chat_message.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/toast.dart';
-import 'package:login_flutter/util/user_info.dart';
+import 'package:login_flutter/util/user_model.dart';
 import 'package:provider/provider.dart';
 
 class AdminPage extends StatefulWidget {
@@ -51,7 +51,7 @@ class _AdminPageState extends State<AdminPage> {
 
     final messageCreated = await LocalDataBase.saveChatMessage(
       _textController.text,
-      useInfo.userId,
+      useInfo.userID,
     );
 
     if (messageCreated == null) {
@@ -74,10 +74,10 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _handleAdminLogOut(BuildContext context) async {
-    await LocalDataBase.onAdminLogOut();
 
+    //! must await for the logout process to complete before navigating to the login page
+    await Provider.of<UserModel>(context, listen: false).logOut();
     if (!context.mounted) return;
-    Provider.of<UserModel>(context, listen: false).logOut();
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
@@ -185,6 +185,8 @@ class _ChatEnterBar extends StatelessWidget {
             child: CupertinoTextField.borderless(
               controller: textController,
               placeholder: 'Type your message',
+              // textInputAction: TextInputAction.send,
+              // onSubmitted: (value) => sendMessage(),
             ),
           ),
           const SizedBox(width: 10),
@@ -213,7 +215,7 @@ class ChatMessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userInfo = Provider.of<UserModel>(context, listen: false).userInfo;
-    final isMessageSendByCurrentUser = message.senderId == userInfo?.userId;
+    final isMessageSendByCurrentUser = message.senderId == userInfo?.userID;
 
     return Padding(
       padding: const EdgeInsets.all(8.0),

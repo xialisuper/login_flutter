@@ -3,11 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:login_flutter/login/login_page.dart';
-import 'package:login_flutter/model/user.dart';
-import 'package:login_flutter/util/local_data_storage.dart';
+
 import 'package:login_flutter/util/permission_helper.dart';
 import 'package:login_flutter/util/toast.dart';
-import 'package:login_flutter/util/user_info.dart';
+import 'package:login_flutter/util/user_model.dart';
 import 'package:provider/provider.dart';
 
 class UserPage extends StatefulWidget {
@@ -37,14 +36,14 @@ class _UserPageState extends State<UserPage> {
       setState(() {
         _userAvatarPath = image.path;
       });
-      // save user avatar path to shared preferences. no need to await.
-      // may not work in web according to doc.
-      LocalDataBase.setUserAvatarPath(image.path);
+
+      if (!mounted) return;
+      Provider.of<UserModel>(context).updateUserAvatarPath(image.path);
     }
   }
 
   Future<void> _loadUserInfo() async {
-    final User? user = await LocalDataBase.getUserInfo();
+    final user = Provider.of<UserModel>(context).userInfo;
 
     if (user != null) {
       setState(() {
@@ -57,13 +56,9 @@ class _UserPageState extends State<UserPage> {
   }
 
   Future<void> _handleLogOutButtonTapped(BuildContext context) async {
-    //clear user info and logout
-    await LocalDataBase.onUserLogOut();
-
+    // must await to ensure the logOut method is completed before push the login page
+    await Provider.of<UserModel>(context, listen: false).logOut();
     if (!context.mounted) return;
-
-    Provider.of<UserModel>(context, listen: false).logOut();
-
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
@@ -75,7 +70,12 @@ class _UserPageState extends State<UserPage> {
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
     _loadUserInfo();
+    super.didChangeDependencies();
   }
 
   @override

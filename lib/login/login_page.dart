@@ -9,9 +9,10 @@ import 'package:login_flutter/User/user_page.dart';
 import 'package:login_flutter/const.dart';
 import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/qrcode/qrcode_page.dart';
-import 'package:login_flutter/util/local_data_storage.dart';
+import 'package:login_flutter/util/qr_helper.dart';
+
 import 'package:login_flutter/util/toast.dart';
-import 'package:login_flutter/util/user_info.dart';
+import 'package:login_flutter/util/user_model.dart';
 import 'package:login_flutter/util/validations.dart';
 
 import 'package:permission_handler/permission_handler.dart';
@@ -59,14 +60,15 @@ class _LoginPageState extends State<LoginPage> {
 
     _showSuccess(TOAST_SUCCESS_MESSAGE);
 
-    final user = await LocalDataBase.onAdminLogin(
-        email: emailController.text, password: passwordController.text);
+    // UserModel handle admin login event
+    await Provider.of<UserModel>(context, listen: false).adminLogin(
+      email: emailController.text,
+      password: passwordController.text,
+    );
+
+    if (!mounted) return;
 
     // Navigate to the user page on successful login.
-    if (!mounted) return;
-    Provider.of<UserModel>(context, listen: false).setUserInfo(
-      UserInfo(name: user.name, email: user.email, userId: user.userID),
-    );
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
@@ -90,18 +92,14 @@ class _LoginPageState extends State<LoginPage> {
 
     _showSuccess(TOAST_SUCCESS_MESSAGE);
 
-    // save user info to local database
-    final user = await LocalDataBase.onUserLogin(
+    // UserModel handle user login event
+    await Provider.of<UserModel>(context, listen: false).userLogin(
       userNameController.text,
       userPasswordController.text,
       isStudent ? UserType.student : UserType.parent,
     );
-
     if (!mounted) return;
-    // set user info to provider
-    Provider.of<UserModel>(context, listen: false).setUserInfo(
-      UserInfo(name: user.name, email: user.email, userId: user.userID),
-    );
+
     // Navigate to the user page on successful login.
     Navigator.pushAndRemoveUntil<void>(
       context,
@@ -172,7 +170,10 @@ class _LoginPageState extends State<LoginPage> {
     debugPrint('跳转到 QR 码扫描页面');
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const QRCodePage(),
+        builder: (context) => Provider(
+          create: (BuildContext context) => QRHelper(),
+          child: const QRCodePage(),
+        ),
       ),
     );
   }

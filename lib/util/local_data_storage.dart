@@ -160,8 +160,10 @@ class LocalDataBase {
   }
 
 //danteng@dan.com
-  static Future<User> onAdminLogin(
-      {required String email, required String password}) async {
+  static Future<User> onAdminLogin({
+    required String email,
+    required String password,
+  }) async {
     // use shared preferences to save admin info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString(USER_TOKEN, _mockUserToken);
@@ -204,15 +206,7 @@ class LocalDataBase {
     }
   }
 
-  static Future<void> onUserLogOut() {
-    return _deleteAllDataFromSharedPrefs();
-  }
-
-  static Future<void> onAdminLogOut() async {
-    return _deleteAllDataFromSharedPrefs();
-  }
-
-  static Future<void> _deleteAllDataFromSharedPrefs() async {
+  static Future<void> deleteAllDataFromSharedPrefs() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.remove(USER_NAME);
     prefs.remove(USER_TOKEN);

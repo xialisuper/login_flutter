@@ -4,7 +4,7 @@ import 'package:login_flutter/User/user_page.dart';
 import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
-import 'package:login_flutter/util/user_info.dart';
+import 'package:login_flutter/util/user_model.dart';
 import 'package:provider/provider.dart';
 
 Future<void> main() async {
@@ -34,13 +34,7 @@ class MainApp extends StatelessWidget {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (user != null) {
         // Set the user information to the provider.
-        Provider.of<UserModel>(context, listen: false).setUserInfo(
-          UserInfo(
-            name: user!.name,
-            email: user!.email,
-            userId: user!.userID,
-          ),
-        );
+        Provider.of<UserModel>(context, listen: false).setUserInfo(user!);
       }
     });
 
