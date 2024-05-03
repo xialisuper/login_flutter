@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import 'package:login_flutter/Admin/admin_page.dart';
+import 'package:login_flutter/User/image_picker.dart';
 import 'package:login_flutter/User/user_page.dart';
 import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/user.dart';
@@ -44,7 +46,10 @@ class MainApp extends StatelessWidget {
     } else if (user!.type == UserType.admin) {
       home = const AdminPage();
     } else {
-      home = const UserPage();
+      home = Provider(
+        create: (BuildContext context) => AvatarPicker(),
+        child: const UserPage(),
+      );
     }
 
     return MaterialApp(

@@ -1,11 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+
+import 'package:login_flutter/User/image_picker.dart';
 import 'package:login_flutter/login/login_page.dart';
 
-import 'package:login_flutter/util/permission_helper.dart';
-import 'package:login_flutter/util/toast.dart';
 import 'package:login_flutter/util/user_model.dart';
 import 'package:provider/provider.dart';
 
@@ -18,42 +17,32 @@ class UserPage extends StatefulWidget {
 
 class _UserPageState extends State<UserPage> {
   Future<void> _handleUserIconButtonTapped() async {
-    final isGranted = await PermissionHelper.requestAlbumPermission();
-    if (isGranted) {
-      _openImagePicker();
-    } else {
-      MyToast.showToast(msg: '相册权限未授权', type: ToastType.error);
-    }
-  }
+    // picker will check permission or request permission and then open image picker , return selected image path or empty string(canceled)
+    final path = await Provider.of<AvatarPicker>(context, listen: false)
+        .openImagePicker();
 
-  Future<void> _openImagePicker() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null && image.path.isNotEmpty) {
-      if (!mounted) return;
 
-      // should use listen: false to use context outside widget tree
-      // update user avatar path
-      Provider.of<UserModel>(context, listen: false)
-          .updateUserAvatarPath(image.path);
-    }
+    // if user canceled the picker, return
+    if (path.isEmpty) return;
+
+    if (!mounted) return;
+    // update user avatar path
+    // should use listen: false to use context outside widget tree
+    await Provider.of<UserModel>(context, listen: false)
+        .updateUserAvatarPath(path);
   }
 
   Future<void> _handleLogOutButtonTapped(BuildContext context) async {
     // must await to ensure the logOut method is completed before push the login page
     await Provider.of<UserModel>(context, listen: false).logOut();
     if (!context.mounted) return;
+
     Navigator.pushAndRemoveUntil<void>(
       context,
       MaterialPageRoute<void>(
           builder: (BuildContext context) => const LoginPage()),
       ModalRoute.withName('/login'),
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override

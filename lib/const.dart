@@ -32,3 +32,5 @@ const String TOAST_INVALID_PASSWORD =
     'Please enter a valid password, length is at least 8';
 
 const String TOAST_INVALID_EMAIL = 'Please enter a valid email address';
+
+const String TOAST_PHOTO_PERMISSION_DENIED = 'Photo Permission Denied';
