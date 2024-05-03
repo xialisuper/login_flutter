@@ -32,14 +32,13 @@ class _UserPageState extends State<UserPage> {
 
   Future<void> _openImagePicker() async {
     final ImagePicker picker = ImagePicker();
-    // 从相册中选择图片
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null && image.path.isNotEmpty) {
       setState(() {
         _userAvatarPath = image.path;
       });
-      // 保存用户头像到shared preferences. no need to await
-      // may not work in web .
+      // save user avatar path to shared preferences. no need to await.
+      // may not work in web according to doc.
       LocalDataBase.setUserAvatarPath(image.path);
     }
   }
@@ -57,7 +56,7 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
-  Future<void> _backToLoginPage(BuildContext context) async {
+  Future<void> _handleLogOutButtonTapped(BuildContext context) async {
     //clear user info and logout
     await LocalDataBase.onUserLogOut();
 
@@ -116,7 +115,7 @@ class _UserPageState extends State<UserPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
               child: ElevatedButton(
-                onPressed: () => _backToLoginPage(context),
+                onPressed: () => _handleLogOutButtonTapped(context),
                 child: const Text('Log Out'),
               ),
             ),

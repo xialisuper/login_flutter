@@ -43,7 +43,7 @@ class _AdminPageState extends State<AdminPage> {
     // save message to local database before update ui, otherwise _textController.clear() will clean the message inputField and insert a empty message into database
 
     final useInfo = Provider.of<UserModel>(context, listen: false).userInfo;
-    
+
     if (useInfo == null) {
       MyToast.showToast(msg: '请先登录', type: ToastType.error);
       return;
@@ -218,6 +218,7 @@ class ChatMessageBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
+        // avatars are aligned to the left for the current user, and to the right for the other user
         mainAxisAlignment: isMessageSendByCurrentUser
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
@@ -228,7 +229,6 @@ class ChatMessageBubble extends StatelessWidget {
               backgroundColor: Colors.grey[300],
             ),
           Flexible(
-            // wrap your Container with Flexible
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 10),
               padding: const EdgeInsets.all(15),
