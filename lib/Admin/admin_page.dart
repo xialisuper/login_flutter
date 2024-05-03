@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/chat_message.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/toast.dart';
@@ -37,7 +38,7 @@ class _AdminPageState extends State<AdminPage> {
       return;
     }
 
-    // save message to local database before ui, or _textController.clear() will clear the message
+    // save message to local database before update ui, otherwise _textController.clear() will clean the message inputField and insert a empty message into database
     LocalDataBase.saveChatMessage(ChatMessage(
       content: _textController.text,
       isSentByUser: true,
@@ -46,7 +47,8 @@ class _AdminPageState extends State<AdminPage> {
     setState(() {
       messages.insert(
           0, ChatMessage(content: _textController.text, isSentByUser: true));
-          
+
+      // clear message inputField
       _textController.clear();
     });
 
@@ -57,11 +59,64 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  Future<void> _handleAdminLogOut() async {
+    await LocalDataBase.onAdminLogOut();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil<void>(
+      context,
+      MaterialPageRoute<void>(
+          builder: (BuildContext context) => const LoginPage()),
+      ModalRoute.withName('/login'),
+    );
+  }
+
+  // This shows a CupertinoModalPopup which hosts a CupertinoActionSheet.
+  void _showActionSheet(BuildContext context) {
+    showCupertinoModalPopup<void>(
+      context: context,
+      builder: (BuildContext context) => CupertinoActionSheet(
+        actions: <CupertinoActionSheetAction>[
+          CupertinoActionSheetAction(
+            /// This parameter indicates the action would be a default
+            /// default behavior, turns the action's text to bold text.
+            isDefaultAction: true,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Default Action'),
+          ),
+          CupertinoActionSheetAction(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text('Action'),
+          ),
+          CupertinoActionSheetAction(
+            /// This parameter indicates the action would perform
+            /// a destructive action such as delete or exit and turns
+            /// the action's text color to red.
+            isDestructiveAction: true,
+            onPressed: () {
+              _handleAdminLogOut();
+              Navigator.pop(context);
+            },
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Chat"),
+        actions: [
+          IconButton(
+              icon: const Icon(Icons.more_horiz),
+              onPressed: () => _showActionSheet(context)),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),

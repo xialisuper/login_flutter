@@ -55,6 +55,19 @@ class _UserPageState extends State<UserPage> {
     }
   }
 
+  Future<void> _backToLoginPage() async {
+    //clear user info and logout
+    await LocalDataBase.onUserLogOut();
+
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil<void>(
+      context,
+      MaterialPageRoute<void>(
+          builder: (BuildContext context) => const LoginPage()),
+      ModalRoute.withName('/login'),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -98,17 +111,7 @@ class _UserPageState extends State<UserPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: 20),
               child: ElevatedButton(
-                onPressed: () async {
-                  await LocalDataBase.onUserLogOut();
-
-                  if (!context.mounted) return;
-                  Navigator.pushAndRemoveUntil<void>(
-                    context,
-                    MaterialPageRoute<void>(
-                        builder: (BuildContext context) => const LoginPage()),
-                    ModalRoute.withName('/login'),
-                  );
-                },
+                onPressed: _backToLoginPage,
                 child: const Text('Log Out'),
               ),
             ),

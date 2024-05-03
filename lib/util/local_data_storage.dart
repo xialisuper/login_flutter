@@ -34,6 +34,8 @@ class LocalDataBase {
 
   static Future<List<ChatMessage>> getAllChatMessages() async {
     var db = await openDatabase(DB_NAME);
+
+    // get all chat messages and descent order
     final List<Map> result = await db.rawQuery(
       'SELECT * FROM chats ORDER BY id DESC',
     );
