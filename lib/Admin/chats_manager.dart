@@ -11,7 +11,6 @@ class ChatsManager with ChangeNotifier {
   List<ChatMessage> get chats => _chats;
 
   Future<void> loadChatMessages() async {
-    // TODO: load chat messages from server
     final chatMessages = await LocalDataBase.getAllChatMessages();
     _chats.addAll(chatMessages);
     notifyListeners();
