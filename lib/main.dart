@@ -16,6 +16,7 @@ Future<void> main() async {
   final user = await LocalDataBase.getUserInfo();
 
   runApp(
+    // put the user information to the provider. and pass it to the main app. so that it can be used in the whole app.
     ChangeNotifierProvider(
       create: (BuildContext context) => UserModel(),
       child: MainApp(user),

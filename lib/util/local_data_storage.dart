@@ -1,11 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:login_flutter/const.dart';
 import 'package:login_flutter/model/chat_message.dart';
 import 'package:login_flutter/model/user.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -206,31 +204,25 @@ class LocalDataBase {
     }
   }
 
-  static Future<void> onUserLogOut() async {
-    // use shared preferences to save user info
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.remove(USER_TOKEN);
-    prefs.remove(USER_NAME);
-    prefs.remove(USER_TYPE);
-    prefs.remove(USER_AVATAR_PATH);
+  static Future<void> onUserLogOut() {
+    return _deleteAllDataFromSharedPrefs();
   }
 
   static Future<void> onAdminLogOut() async {
-    // use shared preferences to save user info
+    return _deleteAllDataFromSharedPrefs();
+  }
+
+  static Future<void> _deleteAllDataFromSharedPrefs() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.remove(USER_NAME);
     prefs.remove(USER_TOKEN);
-    prefs.remove(ADMIN_EMAIL);
     prefs.remove(USER_TYPE);
     prefs.remove(USER_AVATAR_PATH);
+    prefs.remove(ADMIN_EMAIL);
+    prefs.remove(ADMIN_ID);
   }
 
-  Future<String> saveImageToFileSystem(File imageFile, String filename) async {
-    Directory directory = await getApplicationDocumentsDirectory();
-    String path = directory.path;
-    File newImage = await imageFile.copy('$path/$filename');
-    return newImage.path;
-  }
-
+  // get user info from shared preferences
   static Future<User?> getUserInfo() async {
     // use shared preferences to get user info
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -262,11 +254,6 @@ class LocalDataBase {
   static Future<void> setUserAvatarPath(String path) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(USER_AVATAR_PATH, path);
-  }
-
-  static Future<String?> getUserAvatarPath() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString(USER_AVATAR_PATH);
   }
 }
 
