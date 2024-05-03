@@ -9,6 +9,7 @@ import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/qrcode/qrcode_page.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
 import 'package:login_flutter/util/toast.dart';
+import 'package:login_flutter/util/validations.dart';
 
 import 'package:permission_handler/permission_handler.dart';
 
@@ -42,12 +43,12 @@ class _LoginPageState extends State<LoginPage> {
 
   // This method handles the form submission for admin login.
   Future<void> _onAdminSubmit() async {
-    if (!_isValidatedEmail(emailController.text)) {
+    if (!Validations.isValidatedEmail(emailController.text)) {
       _showError("Please enter a valid email address");
       return;
     }
 
-    if (!_isValidatedPassword(passwordController.text)) {
+    if (!Validations.isValidatedPassword(passwordController.text)) {
       _showError("Please enter a valid password, length is at least 6");
       return;
     }
@@ -68,12 +69,12 @@ class _LoginPageState extends State<LoginPage> {
 
   // This method handles the form submission for user login.
   Future<void> _onUserSubmit() async {
-    if (!_isValidatedUserName(userNameController.text)) {
+    if (!Validations.isValidatedUserName(userNameController.text)) {
       _showError("Please enter a valid user name, length is at least 6");
       return;
     }
 
-    if (!_isValidatedPassword(userPasswordController.text)) {
+    if (!Validations.isValidatedPassword(userPasswordController.text)) {
       _showError("Please enter a valid password, length is at least 6");
       return;
     }
@@ -103,28 +104,6 @@ class _LoginPageState extends State<LoginPage> {
         content: Text(errorMessage),
       ),
     );
-  }
-
-  // Validate the length of the user name.
-  bool _isValidatedUserName(String? value) {
-    if (value == null || value.isEmpty) {
-      return false;
-    }
-    return value.length >= 6;
-  }
-
-  // Validate the email using a regular expression.
-  bool _isValidatedEmail(String? value) {
-    RegExp regex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return regex.hasMatch(value ?? '');
-  }
-
-  // Validate the length of the password.
-  bool _isValidatedPassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return false;
-    }
-    return value.length >= 6;
   }
 
   // Handle the change in login type (admin/user) and update the UI accordingly.
@@ -202,8 +181,8 @@ class _LoginPageState extends State<LoginPage> {
                       });
                     }),
 
-            // QR CODE BUTTON
             const SizedBox(height: 20),
+            // QR CODE BUTTON
             TextButton(
               style: TextButton.styleFrom(
                 foregroundColor: Colors.green[400],
@@ -224,6 +203,7 @@ class _LoginSectionSwitcher extends StatelessWidget {
     required this.onSelectButtonClicked,
   });
 
+  // callback when switch between admin/user login
   final Function(bool isAdmin) onSelectButtonClicked;
 
   @override
@@ -257,10 +237,7 @@ class _LoginSectionSwitcher extends StatelessWidget {
 }
 
 class _AnimateScrollableLineIndicator extends StatelessWidget {
-  const _AnimateScrollableLineIndicator({
-    super.key,
-    required this.isAdmin,
-  });
+  const _AnimateScrollableLineIndicator({required this.isAdmin});
 
   final bool isAdmin;
 
@@ -302,7 +279,6 @@ class _UserLoginForm extends StatelessWidget {
     required this.onSubmit,
     required this.isStudent,
     required this.onSelectButtonClicked,
-    // required ValueKey<String> key,
   });
 
   final TextEditingController userNameController;
