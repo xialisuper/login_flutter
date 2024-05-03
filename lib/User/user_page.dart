@@ -17,9 +17,6 @@ class UserPage extends StatefulWidget {
 }
 
 class _UserPageState extends State<UserPage> {
-  String _userName = '';
-  String _userAvatarPath = '';
-
   Future<void> _handleUserIconButtonTapped() async {
     final isGranted = await PermissionHelper.requestAlbumPermission();
     if (isGranted) {
@@ -33,25 +30,12 @@ class _UserPageState extends State<UserPage> {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null && image.path.isNotEmpty) {
-      setState(() {
-        _userAvatarPath = image.path;
-      });
-
       if (!mounted) return;
-      Provider.of<UserModel>(context).updateUserAvatarPath(image.path);
-    }
-  }
 
-  Future<void> _loadUserInfo() async {
-    final user = Provider.of<UserModel>(context).userInfo;
-
-    if (user != null) {
-      setState(() {
-        debugPrint('user: ${user.toString()}');
-
-        _userName = user.name;
-        _userAvatarPath = user.avatarPath;
-      });
+      // should use listen: false to use context outside widget tree
+      // update user avatar path
+      Provider.of<UserModel>(context, listen: false)
+          .updateUserAvatarPath(image.path);
     }
   }
 
@@ -73,55 +57,59 @@ class _UserPageState extends State<UserPage> {
   }
 
   @override
-  void didChangeDependencies() {
-    _loadUserInfo();
-    super.didChangeDependencies();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('User Page'),
       ),
       body: Center(
-        child: Column(
-          children: <Widget>[
-            if (_userAvatarPath.isNotEmpty)
-              GestureDetector(
-                onTap: _handleUserIconButtonTapped,
-                child: CircleAvatar(
-                  radius: 100, // 设置头像半径
-                  backgroundImage:
-                      FileImage(File(_userAvatarPath)), // 使用FileImage加载图片
+        child: Consumer<UserModel>(builder: (_, userModel, __) {
+          return Column(
+            children: <Widget>[
+              // if (_userAvatarPath.isNotEmpty)
+              if (userModel.userInfo != null &&
+                  userModel.userInfo!.avatarPath.isNotEmpty)
+                GestureDetector(
+                  onTap: _handleUserIconButtonTapped,
+                  child: CircleAvatar(
+                    radius: 100, // 设置头像半径
+                    backgroundImage: FileImage(File(
+                        userModel.userInfo!.avatarPath)), // 使用FileImage加载图片
+                  ),
+                )
+              else
+                IconButton(
+                  onPressed: _handleUserIconButtonTapped,
+                  icon: const Icon(
+                    size: 200,
+                    Icons.enhance_photo_translate_rounded,
+                  ),
                 ),
-              )
-            else
-              IconButton(
-                onPressed: _handleUserIconButtonTapped,
-                icon: const Icon(
-                  size: 200,
-                  Icons.enhance_photo_translate_rounded,
+              const SizedBox(height: 50),
+
+              Text(
+                _userName(userModel),
+                style: const TextStyle(fontSize: 20),
+              ),
+              const Spacer(),
+
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: ElevatedButton(
+                  onPressed: () => _handleLogOutButtonTapped(context),
+                  child: const Text('Log Out'),
                 ),
               ),
-            const SizedBox(height: 50),
-            // user name
-            Text(
-              _userName.isNotEmpty ? _userName : 'hello world',
-              style: const TextStyle(fontSize: 20),
-            ),
-            const Spacer(),
-            // log out button
-            Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: ElevatedButton(
-                onPressed: () => _handleLogOutButtonTapped(context),
-                child: const Text('Log Out'),
-              ),
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
     );
+  }
+
+  String _userName(UserModel userModel) {
+    if (userModel.userInfo == null) return 'hello world';
+    if (userModel.userInfo!.name.isEmpty) return 'hello world';
+    return ' name is ${userModel.userInfo!.name} \n identity is ${userModel.userInfo!.type}';
   }
 }

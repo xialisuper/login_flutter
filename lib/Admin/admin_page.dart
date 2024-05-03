@@ -74,7 +74,6 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   Future<void> _handleAdminLogOut(BuildContext context) async {
-
     //! must await for the logout process to complete before navigating to the login page
     await Provider.of<UserModel>(context, listen: false).logOut();
     if (!context.mounted) return;
@@ -99,13 +98,13 @@ class _AdminPageState extends State<AdminPage> {
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Default Action'),
+            child: const Text('DOES NOTHING'),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('Action'),
+            child: const Text('DOES NOTHING AGAIN'),
           ),
           CupertinoActionSheetAction(
             /// This parameter indicates the action would perform

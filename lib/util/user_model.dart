@@ -38,6 +38,11 @@ class UserModel with ChangeNotifier {
   }
 
   Future<void> updateUserAvatarPath(String path) async {
+    if (_userInfo == null) return;
+
+    userInfo!.avatarPath = path;
+    notifyListeners();
+
     // save user avatar path to shared preferences. no need to await.
     // may not work in web according to doc.
     return LocalDataBase.setUserAvatarPath(path);
