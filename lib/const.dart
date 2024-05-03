@@ -34,3 +34,7 @@ const String TOAST_INVALID_PASSWORD =
 const String TOAST_INVALID_EMAIL = 'Please enter a valid email address';
 
 const String TOAST_PHOTO_PERMISSION_DENIED = 'Photo Permission Denied';
+
+const String TOAST_EMPTY_MESSAGE = 'Please enter a message';
+
+const String TOAST_ERROR_OCCURRED = 'Error occurred, please try again later';

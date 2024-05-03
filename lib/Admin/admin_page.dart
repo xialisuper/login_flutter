@@ -1,8 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:login_flutter/Admin/chats_manager.dart';
+import 'package:login_flutter/const.dart';
 import 'package:login_flutter/login/login_page.dart';
 import 'package:login_flutter/model/chat_message.dart';
-import 'package:login_flutter/util/local_data_storage.dart';
+
 import 'package:login_flutter/util/toast.dart';
 import 'package:login_flutter/util/user_model.dart';
 import 'package:provider/provider.dart';
@@ -18,53 +20,36 @@ class _AdminPageState extends State<AdminPage> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
 
-  List<ChatMessage> messages = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadChatMessages();
-  }
-
-  void _loadChatMessages() async {
-    final List<ChatMessage> chatMessages =
-        await LocalDataBase.getAllChatMessages();
-    setState(() {
-      messages.addAll(chatMessages);
-    });
-  }
-
   Future<void> _sendMessage(BuildContext context) async {
     if (_textController.text.isEmpty) {
-      MyToast.showToast(msg: '请输入内容', type: ToastType.error);
+      MyToast.showToast(
+        msg: TOAST_EMPTY_MESSAGE,
+        type: ToastType.error,
+      );
       return;
     }
 
-    // save message to local database before update ui, otherwise _textController.clear() will clean the message inputField and insert a empty message into database
-
     final useInfo = Provider.of<UserModel>(context, listen: false).userInfo;
-
     if (useInfo == null) {
       MyToast.showToast(msg: '请先登录', type: ToastType.error);
       return;
     }
 
-    final messageCreated = await LocalDataBase.saveChatMessage(
-      _textController.text,
-      useInfo.userID,
-    );
+    // wait for the message to be created and added to the database
+    final messageCreated =
+        await Provider.of<ChatsManager>(context, listen: false).sendChatMessage(
+            chatMessage: _textController.text, senderId: useInfo.userID);
 
     if (messageCreated == null) {
-      MyToast.showToast(msg: '消息保存失败', type: ToastType.error);
+      MyToast.showToast(
+        msg: TOAST_ERROR_OCCURRED,
+        type: ToastType.error,
+      );
       return;
     }
 
-    setState(() {
-      messages.insert(0, messageCreated);
-
-      // clear message inputField
-      _textController.clear();
-    });
+    // clear the text field and scroll to the 'bottom' of the chat messages list
+    _textController.clear();
 
     _scrollController.animateTo(
       0.1,
@@ -124,40 +109,48 @@ class _AdminPageState extends State<AdminPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Chat"),
-        actions: [
-          IconButton(
-              icon: const Icon(Icons.more_horiz),
-              onPressed: () => _showActionSheet(context)),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(0),
-                shrinkWrap: true,
-                controller: _scrollController,
-                reverse: true,
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  return ChatMessageBubble(message: messages[index]);
-                },
+    return ChangeNotifierProvider(
+        create: (BuildContext context) => ChatsManager(),
+        builder: (context, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text("Chat"),
+              actions: [
+                IconButton(
+                    icon: const Icon(Icons.more_horiz),
+                    onPressed: () => _showActionSheet(context)),
+              ],
+            ),
+            body: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Consumer<ChatsManager>(
+                        builder: (context, chatsManager, child) {
+                      final messages = chatsManager.chats;
+                      return ListView.builder(
+                        padding: const EdgeInsets.all(0),
+                        shrinkWrap: true,
+                        controller: _scrollController,
+                        reverse: true,
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          return ChatMessageBubble(message: messages[index]);
+                        },
+                      );
+                    }),
+                  ),
+                  _ChatEnterBar(
+                    textController: _textController,
+                    sendMessage: () => _sendMessage(context),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
             ),
-            _ChatEnterBar(
-              textController: _textController,
-              sendMessage: () => _sendMessage(context),
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ),
-    );
+          );
+        });
   }
 }
 

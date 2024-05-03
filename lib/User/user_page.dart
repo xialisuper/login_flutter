@@ -47,51 +47,54 @@ class _UserPageState extends State<UserPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Page'),
-      ),
-      body: Center(
-        child: Consumer<UserModel>(builder: (_, userModel, __) {
-          return Column(
-            children: <Widget>[
-              // if (_userAvatarPath.isNotEmpty)
-              if (userModel.userInfo != null &&
-                  userModel.userInfo!.avatarPath.isNotEmpty)
-                GestureDetector(
-                  onTap: _handleUserIconButtonTapped,
-                  child: CircleAvatar(
-                    radius: 100, // 设置头像半径
-                    backgroundImage: FileImage(File(
-                        userModel.userInfo!.avatarPath)), // 使用FileImage加载图片
+    return Provider(
+      create: (BuildContext context) => AvatarPicker(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('User Page'),
+        ),
+        body: Center(
+          child: Consumer<UserModel>(builder: (_, userModel, __) {
+            return Column(
+              children: <Widget>[
+                // if (_userAvatarPath.isNotEmpty)
+                if (userModel.userInfo != null &&
+                    userModel.userInfo!.avatarPath.isNotEmpty)
+                  GestureDetector(
+                    onTap: _handleUserIconButtonTapped,
+                    child: CircleAvatar(
+                      radius: 100, // 设置头像半径
+                      backgroundImage: FileImage(File(
+                          userModel.userInfo!.avatarPath)), // 使用FileImage加载图片
+                    ),
+                  )
+                else
+                  IconButton(
+                    onPressed: _handleUserIconButtonTapped,
+                    icon: const Icon(
+                      size: 200,
+                      Icons.enhance_photo_translate_rounded,
+                    ),
                   ),
-                )
-              else
-                IconButton(
-                  onPressed: _handleUserIconButtonTapped,
-                  icon: const Icon(
-                    size: 200,
-                    Icons.enhance_photo_translate_rounded,
+                const SizedBox(height: 50),
+      
+                Text(
+                  _userName(userModel),
+                  style: const TextStyle(fontSize: 20),
+                ),
+                const Spacer(),
+      
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: ElevatedButton(
+                    onPressed: () => _handleLogOutButtonTapped(context),
+                    child: const Text('Log Out'),
                   ),
                 ),
-              const SizedBox(height: 50),
-
-              Text(
-                _userName(userModel),
-                style: const TextStyle(fontSize: 20),
-              ),
-              const Spacer(),
-
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: ElevatedButton(
-                  onPressed: () => _handleLogOutButtonTapped(context),
-                  child: const Text('Log Out'),
-                ),
-              ),
-            ],
-          );
-        }),
+              ],
+            );
+          }),
+        ),
       ),
     );
   }
