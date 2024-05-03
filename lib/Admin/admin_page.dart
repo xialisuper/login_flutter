@@ -232,9 +232,18 @@ class ChatMessageBubble extends StatelessWidget {
                     : Colors.grey[300],
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Text(
-                message.messageContent,
-                softWrap: true, // let the text wrap onto the next line
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    message.messageContent,
+                    softWrap: true, // let the text wrap onto the next line
+                  ),
+                  Text(
+                    message.timestamp,
+                    style: const TextStyle(fontSize: 9),
+                  )
+                ],
               ),
             ),
           ),
