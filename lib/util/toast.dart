@@ -1,6 +1,7 @@
 //  enum error info success
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:login_flutter/const.dart';
 
 enum ToastType { error, info, success }
 
@@ -27,7 +28,7 @@ class MyToast {
       msg: msg,
       toastLength: Toast.LENGTH_SHORT,
       gravity: ToastGravity.CENTER,
-      timeInSecForIosWeb: 1,
+      timeInSecForIosWeb: TOAST_DURATION_SECONDS,
       backgroundColor: backgroundColor,
       textColor: Colors.white,
       fontSize: 16.0,

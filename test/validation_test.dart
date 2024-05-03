@@ -24,7 +24,7 @@ void main() {
   // Testing the isValidatedPassword function.
   test('test if password validation function is working as expected', () {
     expect(Validations.isValidatedPassword("Emily@2021"), true);
-    expect(Validations.isValidatedPassword("Emily2021"), false);
+    expect(Validations.isValidatedPassword("Emily2021"), true);
     expect(Validations.isValidatedPassword("Emily@"), false);
     expect(Validations.isValidatedPassword("e@2"), false);
     expect(Validations.isValidatedUserName(""), false);

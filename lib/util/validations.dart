@@ -1,10 +1,11 @@
 class Validations {
   // Function to validate a username.
-  // Username should be 3 to 20 characters long and can contain alphanumeric characters and underscore
+  // Username should be 3 to 20 characters long 
   static bool isValidatedUserName(String userName) {
-    RegExp regex = RegExp(
-        r'^[a-zA-Z0-9_]{3,20}$'); // Regular expression for username validation
-    return regex.hasMatch(userName);
+    // RegExp regex = RegExp(
+    //     r'^[a-zA-Z0-9_]{3,20}$'); // Regular expression for username validation
+    // return regex.hasMatch(userName);
+    return userName.length >= 3 && userName.length <= 20;
   }
 
   // Function to validate a email.
@@ -16,12 +17,12 @@ class Validations {
   }
 
   // Function to validate a password.
-  // Password should be at least 8 characters long and
-  // must contain at least one uppercase letter, one lowercase letter,
-  // one number and one special character (@$!%*#?&)
+  // Password should be at least 8 characters long 
   static bool isValidatedPassword(String password) {
-    RegExp regex = RegExp(
-        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'); // Regular expression for password validation
-    return regex.hasMatch(password);
+    // RegExp regex = RegExp(
+    //     r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$'); // Regular expression for password validation
+    // return regex.hasMatch(password);
+
+    return password.length >= 8;
   }
 }

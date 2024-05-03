@@ -1,10 +1,12 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:login_flutter/Admin/admin_page.dart';
 import 'package:login_flutter/User/user_page.dart';
+import 'package:login_flutter/const.dart';
 import 'package:login_flutter/model/user.dart';
 import 'package:login_flutter/qrcode/qrcode_page.dart';
 import 'package:login_flutter/util/local_data_storage.dart';
@@ -44,14 +46,16 @@ class _LoginPageState extends State<LoginPage> {
   // This method handles the form submission for admin login.
   Future<void> _onAdminSubmit() async {
     if (!Validations.isValidatedEmail(emailController.text)) {
-      _showError("Please enter a valid email address");
+      _showError(TOAST_INVALID_EMAIL);
       return;
     }
 
     if (!Validations.isValidatedPassword(passwordController.text)) {
-      _showError("Please enter a valid password, length is at least 6");
+      _showError(TOAST_INVALID_PASSWORD);
       return;
     }
+
+     _showSuccess(TOAST_SUCCESS_MESSAGE);
 
     await LocalDataBase.onAdminLogin(
         email: emailController.text, password: passwordController.text);
@@ -70,14 +74,16 @@ class _LoginPageState extends State<LoginPage> {
   // This method handles the form submission for user login.
   Future<void> _onUserSubmit() async {
     if (!Validations.isValidatedUserName(userNameController.text)) {
-      _showError("Please enter a valid user name, length is at least 6");
+      _showError(TOAST_INVALID_USERNAME);
       return;
     }
 
     if (!Validations.isValidatedPassword(userPasswordController.text)) {
-      _showError("Please enter a valid password, length is at least 6");
+      _showError(TOAST_INVALID_PASSWORD);
       return;
     }
+
+    _showSuccess(TOAST_SUCCESS_MESSAGE);
 
     // save user info to local database
     await LocalDataBase.onUserLoginWithName(
@@ -98,12 +104,34 @@ class _LoginPageState extends State<LoginPage> {
 
   // Display an error message using a snackbar.
   void _showError(String errorMessage) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: Colors.red,
-        content: Text(errorMessage),
-      ),
-    );
+    MyToast.showToast(msg: errorMessage, type: ToastType.error);
+
+    // show snackbar
+    // if is debug mode
+
+    if (kDebugMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showSuccess(String successMessage) {
+    MyToast.showToast(msg: successMessage, type: ToastType.success);
+    // show snackbar for widget test in debug mode
+    // flutter toast can not be found in widget test
+    // because it does not use the context
+    if (kDebugMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(successMessage),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   // Handle the change in login type (admin/user) and update the UI accordingly.
@@ -156,7 +184,9 @@ class _LoginPageState extends State<LoginPage> {
             const SizedBox(height: 20),
 
             _LoginSectionSwitcher(
-                onSelectButtonClicked: _handleLoginTypeChange),
+              onSelectButtonClicked: _handleLoginTypeChange,
+              isAdmin: isAdmin,
+            ),
 
             // scrollable line
             _AnimateScrollableLineIndicator(isAdmin: isAdmin),
@@ -199,12 +229,13 @@ class _LoginPageState extends State<LoginPage> {
 
 class _LoginSectionSwitcher extends StatelessWidget {
   const _LoginSectionSwitcher({
-    super.key,
     required this.onSelectButtonClicked,
+    required this.isAdmin,
   });
 
   // callback when switch between admin/user login
   final Function(bool isAdmin) onSelectButtonClicked;
+  final bool isAdmin;
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +249,15 @@ class _LoginSectionSwitcher extends StatelessWidget {
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
               onTap: () => onSelectButtonClicked(false),
-              child: Center(child: Text('User')),
+              child: Center(
+                child: Text(
+                  key: const Key('userTab'),
+                  'User',
+                  style: TextStyle(
+                      color:
+                          isAdmin ? COLOR_TEXT_SECONDARY : COLOR_TEXT_PRIMARY),
+                ),
+              ),
             ),
           ),
           Expanded(
@@ -226,7 +265,13 @@ class _LoginSectionSwitcher extends StatelessWidget {
               behavior: HitTestBehavior.translucent,
               onTap: () => onSelectButtonClicked(true),
               child: Center(
-                child: Text('Admin'),
+                child: Text(
+                  key: const Key('adminTab'),
+                  'Admin',
+                  style: TextStyle(
+                      color:
+                          isAdmin ? COLOR_TEXT_PRIMARY : COLOR_TEXT_SECONDARY),
+                ),
               ),
             ),
           ),
@@ -295,13 +340,14 @@ class _UserLoginForm extends StatelessWidget {
           GestureDetector(
             onTap: () => onSelectButtonClicked(true),
             child: Container(
+              key: const Key('studentButton'),
               width: 100,
               height: 30,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(99),
                 color: isStudent
-                    ? const Color.fromRGBO(179, 229, 224, 1)
-                    : Theme.of(context).hintColor.withOpacity(0.2),
+                    ? COLOR_SELECTED_BUTTON_BACKGROUND
+                    : COLOR_UNSELECTED_BUTTON_BACKGROUND,
               ),
               child: const Center(child: Text('Student')),
             ),
@@ -310,13 +356,14 @@ class _UserLoginForm extends StatelessWidget {
           GestureDetector(
             onTap: () => onSelectButtonClicked(false),
             child: Container(
+              key: const Key('parentButton'),
               width: 100,
               height: 30,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(99),
                 color: isStudent
-                    ? Theme.of(context).hintColor.withOpacity(0.2)
-                    : const Color.fromRGBO(179, 229, 224, 1),
+                    ? COLOR_UNSELECTED_BUTTON_BACKGROUND
+                    : COLOR_SELECTED_BUTTON_BACKGROUND,
               ),
               child: const Center(child: Text('Parent')),
             ),
@@ -328,6 +375,7 @@ class _UserLoginForm extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: CupertinoTextField(
+          key: const Key('userNameField'),
           controller: userNameController,
           placeholder: 'User Name',
         ),
@@ -337,6 +385,7 @@ class _UserLoginForm extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: CupertinoTextField(
+          key: const Key('userPasswordField'),
           controller: userPasswordController,
           obscureText: true,
           placeholder: 'Password',
@@ -347,6 +396,7 @@ class _UserLoginForm extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: TextButton(
+          key: const Key('userLoginButton'),
           style: TextButton.styleFrom(
             backgroundColor: Colors.yellow,
             foregroundColor: Colors.black,
@@ -381,6 +431,7 @@ class _AdminLoginForm extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: CupertinoTextField(
+          key: const Key('adminEmailField'),
           controller: emailController,
           placeholder: 'Email',
         ),
@@ -390,6 +441,7 @@ class _AdminLoginForm extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: CupertinoTextField(
+          key: const Key('adminPasswordField'),
           controller: passwordController,
           obscureText: true,
           placeholder: 'Password',
@@ -400,6 +452,7 @@ class _AdminLoginForm extends StatelessWidget {
         width: double.infinity,
         height: 54,
         child: TextButton(
+          key: const Key('adminLoginButton'),
           style: TextButton.styleFrom(
             backgroundColor: Colors.yellow,
             foregroundColor: Colors.black,
