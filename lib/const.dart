@@ -8,6 +8,8 @@ const String USER_NAME = 'user_name';
 const String USER_TYPE = 'user_type';
 const String USER_AVATAR_PATH = 'user_avatar_path';
 const String ADMIN_EMAIL = 'admin_email';
+// database user table, user primary key 
+const String ADMIN_ID = 'user_id';
 
 /////////  color //////////
 
@@ -24,7 +26,7 @@ const int TOAST_DURATION_SECONDS = 2;
 const String TOAST_SUCCESS_MESSAGE = 'Success';
 const String TOAST_FAILURE_MESSAGE = 'Failure';
 const String TOAST_INVALID_USERNAME =
-    'Please enter a valid user name, length is at least 6';
+    'Please enter a valid user name, length is at least 3 and at most 20';
 
 const String TOAST_INVALID_PASSWORD =
     'Please enter a valid password, length is at least 8';

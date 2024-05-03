@@ -10,12 +10,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LocalDataBase {
+  // mock default admin user id
+  static const int _defaultAdminID = 1;
+
   static Future<void> initialDataBase() async {
     openDatabase(
       singleInstance: true,
-      // Set the path to the database. Note: Using the `join` function from the
-      // `path` package is best practice to ensure the path is correctly
-      // constructed for each platform.
       join(await getDatabasesPath(), DB_NAME),
       onCreate: _onCreateChatsTable,
       version: 2,
@@ -25,39 +25,129 @@ class LocalDataBase {
   }
 
   static Future<void> _onCreateChatsTable(Database db, int version) async {
-    await db.execute(
-        'CREATE TABLE chats (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, isSentByUser INTEGER)');
-    await db.rawInsert(
-        'INSERT INTO chats (content, isSentByUser) VALUES (?, ?)',
-        ['hello world', 0]);
+    // create users table
+    await db.execute("""
+
+        CREATE TABLE Users (
+            user_id INTEGER PRIMARY KEY,
+            email TEXT UNIQUE NOT NULL,
+            other_user_details TEXT
+        );
+      """);
+
+    //  create messages table
+    //  timestamp -- Store as ISO8601 string ("YYYY-MM-DD HH:MM:SS.SSS")
+    //  sender_id -- Foreign key to Users table
+    //  recipient_id -- Foreign key to Users table
+    //  message_content -- Text message content
+
+    await db.execute("""
+        CREATE TABLE Messages (
+            message_id INTEGER PRIMARY KEY,
+            sender_id INTEGER NOT NULL,
+            recipient_id INTEGER NOT NULL,
+            message_content TEXT,
+            timestamp TEXT,
+            FOREIGN KEY (sender_id) REFERENCES Users(user_id),
+            FOREIGN KEY (recipient_id) REFERENCES Users(user_id)
+        );
+      """);
+
+    // insert default admin user
+    await db.execute("""
+    INSERT INTO Users (username, other_user_details)
+    VALUES ('admin@admin.com', 'admin');
+""");
   }
 
   static Future<List<ChatMessage>> getAllChatMessages() async {
     var db = await openDatabase(DB_NAME);
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // get all chat messages and descent order
-    final List<Map> result = await db.rawQuery(
-      'SELECT * FROM chats ORDER BY id DESC',
-    );
+    final email = prefs.getString(ADMIN_EMAIL) ?? '';
 
-    if (result.isEmpty) {
-      return [];
-    }
+    final currentUserId = await _getOrCreateUserInfoByEmail(email);
 
-    return result.map((e) {
+    // 使用 SQL 查询获取所有相关聊天消息，按时间戳降序排列
+    final List<Map<String, dynamic>> maps = await db.rawQuery('''
+    SELECT *
+    FROM Messages
+    WHERE sender_id = ? OR recipient_id = ?
+    ORDER BY timestamp DESC
+  ''', [currentUserId, currentUserId]);
+
+    // 将查询结果转换为 ChatMessage 对象列表
+    return List.generate(maps.length, (i) {
       return ChatMessage(
-        content: e['content'],
-        isSentByUser: e['isSentByUser'] == 1 ? true : false,
+        senderId: maps[i]['sender_id'],
+        receiverId: maps[i]['recipient_id'],
+        messageContent: maps[i]['message_content'],
+        timestamp: maps[i]['timestamp'],
       );
-    }).toList();
+    });
   }
 
-  static Future<void> saveChatMessage(ChatMessage message) async {
+  // 通过 email 查询用户信息 ,  如果没有查询到结果，则插入新用户并返回用户信息
+  static Future<int> _getOrCreateUserInfoByEmail(String email) async {
     var db = await openDatabase(DB_NAME);
-    final int id = await db.rawInsert(
-        'INSERT INTO chats (content, isSentByUser) VALUES (?, ?)',
-        [message.content, message.isSentByUser ? 1 : 0]);
-    debugPrint('saveChatMessage id: $id');
+
+    // 使用 email 查询用户信息
+    List<Map<String, dynamic>> results = await db.rawQuery('''
+    SELECT * 
+    FROM Users 
+    WHERE email = ?
+  ''', [email]);
+
+    // 如果查询到结果，则将数据转换为 User 对象并返回
+    if (results.isNotEmpty) {
+      return results.first['user_id'];
+    }
+
+    // 如果没有查询到结果，则插入新用户并返回用户信息
+    int newUserId = await db.rawInsert('''
+    INSERT INTO Users (email)
+    VALUES (?)
+  ''', [email]);
+
+    return newUserId;
+  }
+
+  // save chat message to database, return true if success, false if failed
+  static Future<ChatMessage?> saveChatMessage(String message) async {
+    if (message.isEmpty) return null;
+
+    var db = await openDatabase(DB_NAME);
+
+    // 所有消息的接受者为default admin  user_id = 1
+    // 实际场景中，接受者应该是当前登录用户的 user_id
+
+    final String timestamp = DateTime.now().toIso8601String();
+
+    final userId = await _getUserIdFromSharedPreference();
+
+    if (userId == null) {
+      debugPrint("ERROR:user id is null!!!!!");
+      return null;
+    }
+
+    try {
+      // 插入一条聊天消息
+      await db.rawInsert("""
+        INSERT INTO Messages (sender_id, recipient_id, message_content, timestamp)
+        VALUES (?, ?, ?, ?)
+        """, [userId, _defaultAdminID, message, timestamp]);
+
+      return ChatMessage.fromMap(
+        {
+          "sender_id": userId,
+          "recipient_id": _defaultAdminID,
+          "message_content": message,
+          "timestamp": timestamp,
+        },
+      );
+    } catch (e) {
+      return null;
+    }
   }
 
   static Future<void> onUserLoginWithName(
@@ -76,6 +166,9 @@ class LocalDataBase {
     prefs.setString(USER_TOKEN, _mockUserToken);
     prefs.setString(ADMIN_EMAIL, email);
     prefs.setInt(USER_TYPE, UserType.admin.index);
+
+    // get or create user to users table
+    await _getOrCreateUserInfoByEmail(email);
   }
 
   static Future<void> onUserLogOut() async {
@@ -111,6 +204,7 @@ class LocalDataBase {
     final String token = prefs.getString(USER_TOKEN) ?? '';
     final int type = prefs.getInt(USER_TYPE) ?? 0;
     final String avatarPath = prefs.getString(USER_AVATAR_PATH) ?? '';
+    final int adminId = prefs.getInt(ADMIN_ID) ?? -1;
 
     if (name.isEmpty && email.isEmpty) {
       return null;
@@ -122,6 +216,7 @@ class LocalDataBase {
       type: UserType.values[type],
       avatarPath: avatarPath,
       email: email,
+      userID: adminId,
     );
   }
 
@@ -133,6 +228,11 @@ class LocalDataBase {
   static Future<String?> getUserAvatarPath() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(USER_AVATAR_PATH);
+  }
+
+  static Future<int?> _getUserIdFromSharedPreference() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(ADMIN_ID);
   }
 }
 

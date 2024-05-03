@@ -15,26 +15,25 @@ Future<void> main() async {
 
   final user = await LocalDataBase.getUserInfo();
 
-  runApp(MainApp(userType: user?.type));
+  runApp(MainApp(user));
 }
 
 class MainApp extends StatelessWidget {
-  final UserType? userType;
+  final User? user;
 
-  const MainApp({super.key, required this.userType});
+  const MainApp(this.user, {super.key});
 
   @override
   Widget build(BuildContext context) {
     Widget home;
-    if (userType == null) {
+    if (user == null) {
       home = const LoginPage();
-    } else if (userType == UserType.admin) {
+    } else if (user!.type == UserType.admin) {
       home = const AdminPage();
     } else {
       home = const UserPage();
     }
 
-    
     return MaterialApp(home: home);
   }
 }

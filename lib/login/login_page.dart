@@ -55,7 +55,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-     _showSuccess(TOAST_SUCCESS_MESSAGE);
+    _showSuccess(TOAST_SUCCESS_MESSAGE);
 
     await LocalDataBase.onAdminLogin(
         email: emailController.text, password: passwordController.text);
@@ -98,7 +98,7 @@ class _LoginPageState extends State<LoginPage> {
       context,
       MaterialPageRoute<void>(
           builder: (BuildContext context) => const UserPage()),
-      ModalRoute.withName('/'),
+      ModalRoute.withName('/user'),
     );
   }
 
