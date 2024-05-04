@@ -8,7 +8,7 @@ const String USER_NAME = 'user_name';
 const String USER_TYPE = 'user_type';
 const String USER_AVATAR_PATH = 'user_avatar_path';
 const String ADMIN_EMAIL = 'admin_email';
-// database user table, user primary key 
+// database user table, user primary key
 const String ADMIN_ID = 'user_id';
 
 /////////  color //////////
@@ -38,3 +38,6 @@ const String TOAST_PHOTO_PERMISSION_DENIED = 'Photo Permission Denied';
 const String TOAST_EMPTY_MESSAGE = 'Please enter a message';
 
 const String TOAST_ERROR_OCCURRED = 'Error occurred, please try again later';
+const String TOAST_USER_NOT_FOUND = 'please login first';
+const String TOAST_CAMERA_PERMISSION_NOT_GRANTED =
+    'Camera permission not available, please grant it in app settings -> privacy -> camera';

@@ -31,7 +31,7 @@ class _AdminPageState extends State<AdminPage> {
 
     final useInfo = Provider.of<UserModel>(context, listen: false).userInfo;
     if (useInfo == null) {
-      MyToast.showToast(msg: '请先登录', type: ToastType.error);
+      MyToast.showToast(msg: TOAST_USER_NOT_FOUND, type: ToastType.error);
       return;
     }
 
