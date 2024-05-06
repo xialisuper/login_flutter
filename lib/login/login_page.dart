@@ -160,7 +160,8 @@ class _LoginPageState extends State<LoginPage> {
         _goToQrCodeScanPage();
       } else {
         debugPrint('拒绝权限 提示用户拒绝权限');
-        MyToast.showToast(msg: TOAST_CAMERA_PERMISSION_NOT_GRANTED, type: ToastType.error);
+        MyToast.showToast(
+            msg: TOAST_CAMERA_PERMISSION_NOT_GRANTED, type: ToastType.error);
       }
     }
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:login_flutter/const.dart';
 import 'package:login_flutter/login/login_page.dart';
+import 'package:login_flutter/util/user_model.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   Widget materialAppWrapper(Widget child) {
@@ -10,11 +12,14 @@ void main() {
     );
   }
 
-
   testWidgets('test login to admin form with invalid password',
       (widgetTester) async {
-    await widgetTester.pumpWidget(materialAppWrapper(const LoginPage()));
-
+    await widgetTester.pumpWidget(materialAppWrapper(ChangeNotifierProvider(
+      child: const LoginPage(),
+      create: (BuildContext context) {
+        return UserModel();
+      },
+    )));
 
     // select admin tab
     final adminTabFinder = find.byKey(const Key('adminTab'));
@@ -49,7 +54,6 @@ void main() {
       (widgetTester) async {
     await widgetTester.pumpWidget(materialAppWrapper(const LoginPage()));
 
-
     // select admin tab
     final adminTabFinder = find.byKey(const Key('adminTab'));
     expect(adminTabFinder, findsOneWidget);
@@ -79,11 +83,15 @@ void main() {
     expect(toastFinder, findsOneWidget);
   });
 
-
   testWidgets('test login to admin form with validated input',
       (widgetTester) async {
-    await widgetTester.pumpWidget(materialAppWrapper(const LoginPage()));
-
+    // await widgetTester.pumpWidget(materialAppWrapper(const LoginPage()));
+    await widgetTester.pumpWidget(materialAppWrapper(ChangeNotifierProvider(
+      child: const LoginPage(),
+      create: (BuildContext context) {
+        return UserModel();
+      },
+    )));
 
     // select admin tab
     final adminTabFinder = find.byKey(const Key('adminTab'));
@@ -114,10 +122,14 @@ void main() {
     expect(toastFinder, findsOneWidget);
   });
 
-
   testWidgets('test login to user form with validated input',
       (widgetTester) async {
-    await widgetTester.pumpWidget(materialAppWrapper(const LoginPage()));
+    await widgetTester.pumpWidget(materialAppWrapper(ChangeNotifierProvider(
+      child: const LoginPage(),
+      create: (BuildContext context) {
+        return UserModel();
+      },
+    )));
 
     final nameFiner = find.byKey(const Key('userNameField'));
     final passwordFinder = find.byKey(const Key('userPasswordField'));
@@ -159,8 +171,6 @@ void main() {
 
     expect(toastFinder, findsOneWidget);
   });
-
-
 
   testWidgets('test login to user form with invalid password',
       (widgetTester) async {
