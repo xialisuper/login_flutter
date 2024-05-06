@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:device_info_plus/device_info_plus.dart';
+
 import 'package:permission_handler/permission_handler.dart';
 
 class PermissionHelper {
@@ -18,11 +22,27 @@ class PermissionHelper {
 
   // 请求相册权限
   static Future<bool> requestAlbumPermission() async {
+    Permission permissionToRequest = Permission.photos;
+
+    if (Platform.isAndroid) {
+      final deviceInfoPlugin = DeviceInfoPlugin();
+
+      final deviceInfo = await deviceInfoPlugin.deviceInfo as AndroidDeviceInfo;
+
+      // android sdk version <= 32 , photo permission should call storage permission
+      // over 33 , photo permission is enough
+      if (deviceInfo.version.sdkInt <= 32) {
+        permissionToRequest = Permission.storage;
+      }
+    }
+
+
     // hasPermission 已经获取到权限
-    if (await Permission.photos.status.isGranted || await Permission.photos.status.isLimited) return true;
+    if (await permissionToRequest.status.isGranted ||
+        await permissionToRequest.status.isLimited) return true;
 
     // 请求权限
-    final status = await Permission.photos.request();
+    final status = await permissionToRequest.request();
 
     if (status == PermissionStatus.granted ||
         status == PermissionStatus.limited) {
@@ -31,6 +51,4 @@ class PermissionHelper {
 
     return false;
   }
-
- 
 }
